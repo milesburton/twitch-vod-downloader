@@ -44,24 +44,6 @@
     }
   },
   "remoteUser": "deno",
-  "mounts": [
-    {
-      "source": "${localEnv:HOME}/.ssh",
-      "target": "/home/deno/.ssh",
-      "type": "bind",
-      "options": ["readonly"]
-    },
-    {
-      "source": "fish_history",
-      "target": "/home/deno/.local/share/fish",
-      "type": "volume"
-    },
-    {
-      "source": "${localWorkspaceFolder}/shared",
-      "target": "/workspace/shared",
-      "type": "bind"
-    }
-  ],
   "containerEnv": {
     "GIT_SSH_COMMAND": "ssh -o StrictHostKeyChecking=no"
   }
