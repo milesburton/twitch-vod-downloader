@@ -1,11 +1,11 @@
 import { Database } from "https://deno.land/x/sqlite3@0.12.0/mod.ts";
-import { execWithLogs, execWithOutput, getDataPath, readJsonFile } from "../shared/utils";
-import { Video, WhisperOutput } from "../shared/types";
-import { deleteTranscriptByVideoId, insertTranscript } from "../db/helpers";
+import { execWithLogs, execWithOutput, getDataPath, readJsonFile } from "../shared/utils.ts";
+import { Video, WhisperOutput } from "../shared/types.ts";
+import { deleteTranscriptByVideoId, insertTranscript } from "../db/helpers.ts";
 import { join } from "https://deno.land/std@0.208.0/path/mod.ts";
 import { ZodError } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import { config } from "https://deno.land/x/dotenv@v3.2.2/mod.ts";
-import { formatChunkNumber, isTextSimilar } from "./transcript-helpers";
+import { formatChunkNumber, isTextSimilar } from "./transcript-helpers.ts";
 
 const env = config();
 const USE_GPU = String(env.USE_GPU).toLowerCase() === "true";

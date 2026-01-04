@@ -1,12 +1,12 @@
-import { downloadTwitchVideo } from "./services/download";
-import { generateTranscript } from "./transcript/transcript";
-import { getTranscriptByVideoId, initDb } from "./db/index";
-import { deleteVideoById, getVideoById } from "./db/helpers";
+import { downloadTwitchVideo } from "./services/download.ts";
+import { generateTranscript } from "./transcript/transcript.ts";
+import { getTranscriptByVideoId, initDb } from "./db/index.ts";
+import { deleteVideoById, getVideoById } from "./db/helpers.ts";
 import { config } from "https://deno.land/x/dotenv@v3.2.2/mod.ts";
-import { fetchVideoIDs } from "./services/scraper";
-import { ensureDirExists, filterVideoIDs, getDataPath } from "./shared/utils";
+import { fetchVideoIDs } from "./services/scraper.ts";
+import { ensureDirExists, filterVideoIDs, getDataPath } from "./shared/utils.ts";
 import { join } from "https://deno.land/std@0.208.0/path/mod.ts";
-import { saveVideoMetadata } from "./services/video-manager";
+import { saveVideoMetadata } from "./services/video-manager.ts";
 
 const env = config();
 const CHANNEL_NAME = env.CHANNEL_NAME;

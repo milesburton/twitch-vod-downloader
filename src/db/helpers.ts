@@ -6,8 +6,8 @@ import {
   Video,
   VideoParams,
   VideoRow,
-} from "../shared/types";
-import { executeQuery, getRows, getSingleRow } from "./utils";
+} from "../shared/types.ts";
+import { executeQuery, getRows, getSingleRow } from "./utils.ts";
 
 const transformVideo = ([id, file_path, created_at]: VideoRow): Video => ({
   id,

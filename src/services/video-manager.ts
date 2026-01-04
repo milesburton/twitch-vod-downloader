@@ -1,6 +1,6 @@
 import { Database } from "https://deno.land/x/sqlite3@0.12.0/mod.ts";
-import { Video } from "../shared/types";
-import { insertVideo } from "../db/helpers";
+import { Video } from "../shared/types.ts";
+import { insertVideo } from "../db/helpers.ts";
 
 export function saveVideoMetadata(db: Database, video: Video) {
   insertVideo(db, {

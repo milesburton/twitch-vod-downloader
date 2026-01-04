@@ -1,13 +1,13 @@
 {
   "tasks": {
-    "start": "deno fmt && deno lint && deno check --unstable-sloppy-imports src/main.ts && deno run --unstable-sloppy-imports --allow-net --allow-run --allow-read --allow-write --allow-ffi --allow-env src/main.ts",
+    "start": "deno fmt && deno lint && deno check src/main.ts && deno run --allow-net --allow-run --allow-read --allow-write --allow-ffi --allow-env src/main.ts",
     "hooks:setup": "git config core.hooksPath .githooks",
     "lint": "deno lint",
     "fmt": "deno fmt",
-    "typecheck": "deno check --unstable-sloppy-imports src/main.ts && deno check --unstable-sloppy-imports src/chapters/chapter-processor.ts",
-    "test:deno": "deno fmt && deno lint && deno check --unstable-sloppy-imports src/main.ts && deno test --unstable-sloppy-imports -A src/**/*.spec.ts",
+    "typecheck": "deno check src/main.ts && deno check src/chapters/chapter-processor.ts",
+    "test:deno": "deno fmt && deno lint && deno check src/main.ts && deno test -A src/**/*.spec.ts",
 
-    "test:deno:coverage": "deno fmt && deno lint && deno check --unstable-sloppy-imports src/main.ts && rm -rf coverage && deno test --unstable-sloppy-imports -A --coverage=coverage src/**/*.spec.ts && deno coverage coverage --lcov > coverage/lcov-deno.info"
+    "test:deno:coverage": "deno fmt && deno lint && deno check src/main.ts && rm -rf coverage && deno test -A --coverage=coverage src/**/*.spec.ts && deno coverage coverage --lcov > coverage/lcov-deno.info"
   },
   "fmt": {
     "lineWidth": 100

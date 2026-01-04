@@ -1,7 +1,7 @@
 import { Database } from "https://deno.land/x/sqlite3@0.12.0/mod.ts";
-import { saveVideoMetadata } from "./video-manager";
-import { execWithLogs, formatDatePrefix, getDataPath, getTempFilePath } from "../shared/utils";
-import { Video } from "../shared/types";
+import { saveVideoMetadata } from "./video-manager.ts";
+import { execWithLogs, formatDatePrefix, getDataPath, getTempFilePath } from "../shared/utils.ts";
+import { Video } from "../shared/types.ts";
 import { join } from "https://deno.land/std@0.210.0/path/mod.ts";
 
 async function attemptDownload(

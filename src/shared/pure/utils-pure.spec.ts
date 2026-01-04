@@ -1,5 +1,5 @@
-import { filterVideoIDs, formatDatePrefix } from "./utils-pure";
-import { test } from "../../testing/test-helpers";
+import { filterVideoIDs, formatDatePrefix } from "./utils-pure.ts";
+import { test } from "../../testing/test-helpers.ts";
 
 test("formatDatePrefix returns YYYY-MM-DD", () => {
   const d = new Date("2026-01-03T12:34:56Z");

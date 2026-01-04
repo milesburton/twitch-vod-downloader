@@ -3,11 +3,11 @@ import {
   generateBulletPointSummary,
   generateChapterTitle,
   segmentTranscript,
-} from "./chapter-utils";
-import { getDataPath } from "../shared/utils";
+} from "./chapter-utils.ts";
+import { getDataPath } from "../shared/utils.ts";
 import { join } from "https://deno.land/std@0.208.0/path/mod.ts";
 import { ensureDir } from "https://deno.land/std@0.208.0/fs/mod.ts";
-import { type ProcessedChapter, TranscriptContent } from "../shared/types";
+import { type ProcessedChapter, TranscriptContent } from "../shared/types.ts";
 
 function formatSecondsToTimestamp(seconds: number): string {
   const hours = Math.floor(seconds / 3600);
