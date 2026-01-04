@@ -28,8 +28,6 @@
     "lib": ["deno.ns", "dom"]
   },
   "imports": {
-    "std-env": "npm:std-env",
-    "vitest/config": "npm:vitest/config",
-    "vite": "npm:vite"
+    "std-env": "npm:std-env"
   }
 }
