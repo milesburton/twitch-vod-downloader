@@ -12,7 +12,7 @@ deno lint || { printf "Lint failed.\n"; exit 1; }
 printf "[pre-commit] Running Deno tests...\n"
 deno task test:deno || { printf "Deno tests failed.\n"; exit 1; }
 
-# Run Vitest test suite via Deno npm bridge
-# Vitest disabled; only Deno tests are run
+# Vitest test suite is not executed by this pre-commit hook.
+# Run Vitest separately (for example via a dedicated task or in CI).
 
 printf "[pre-commit] All checks passed.\n"
