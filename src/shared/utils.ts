@@ -4,7 +4,8 @@ const __filename = fromFileUrl(import.meta.url);
 const __dirname = dirname(__filename);
 
 export function getProjectRoot(): string {
-  return dirname(__dirname);
+  // utils.ts is under src/shared; project root is two levels up
+  return dirname(dirname(__dirname));
 }
 
 export function getDataPath(subdir: string): string {
