@@ -18,3 +18,7 @@ data/*
 # Ignore logs and temporary files
 *.log
 *.tmp
+
+# Node.js dependencies and coverage
+node_modules/
+coverage/

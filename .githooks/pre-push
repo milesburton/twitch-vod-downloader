@@ -1,0 +1,7 @@
+#!/usr/bin/env sh
+set -eu
+
+printf "[pre-push] Running Deno test suite...\n"
+deno task test:deno || { printf "Deno tests failed.\n"; exit 1; }
+
+printf "[pre-push] OK.\n"
