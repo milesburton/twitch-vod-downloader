@@ -228,8 +228,8 @@ This project saves data in several locations within the `data` directory:
   deno task hooks:setup
   ```
 - Enforced checks:
-  - Pre-commit: `deno fmt --check`, `deno lint`, Deno tests, Vitest tests.
-  - Pre-push: Deno + Vitest tests.
+  - Pre-commit: `deno fmt --check`, `deno lint`, Deno tests.
+  - Pre-push: Deno tests.
 - Conventional Commits enforced via `commit-msg` hook. Examples:
   - `feat(transcript): gate generation via env`
   - `fix(download): add date prefix`
@@ -239,11 +239,6 @@ This project saves data in several locations within the `data` directory:
 - Deno unit tests:
   ```
   deno task test:deno
-  ```
-- Vitest (Node-based, pure helpers):
-
-  ```
-  deno task test:vitest
   ```
 
 - **Chapters (`data/transcripts`):** Generated chapter information is stored alongside the
