@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     shellcheck \
     ruby \
     sudo \
-    vim \    
+    vim \
     ssh \
     tree \
     ssh \
@@ -70,7 +70,7 @@ RUN echo '# Environment setup' > /home/deno/.config/fish/config.fish && \
     echo 'end' >> /home/deno/.config/fish/config.fish && \
     echo '' >> /home/deno/.config/fish/config.fish && \
     echo 'alias download="$DENO_INSTALL/bin/deno run --allow-net --allow-run --allow-read --allow-write --allow-env --allow-ffi src/main.ts"' >> /home/deno/.config/fish/config.fish && \
-    echo 'alias process-chapters="$DENO_INSTALL/bin/deno run --allow-read --allow-write --allow-net --allow-env --allow-ffi src/chapterProcessor.ts"' >> /home/deno/.config/fish/config.fish
+    echo 'alias process-chapters="$DENO_INSTALL/bin/deno run --allow-read --allow-write --allow-net --allow-env --allow-ffi src/chapters/chapter-processor.ts"' >> /home/deno/.config/fish/config.fish
 
 # Set Fish as the shell
 SHELL ["/usr/bin/fish", "-c"]

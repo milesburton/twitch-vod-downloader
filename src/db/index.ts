@@ -1,5 +1,5 @@
 import { Database } from "https://deno.land/x/sqlite3@0.12.0/mod.ts";
-import { getDataPath } from "../utils.ts";
+import { getDataPath } from "../shared/utils";
 import { join } from "https://deno.land/std@0.208.0/path/mod.ts";
 
 export function initDb() {
@@ -41,4 +41,4 @@ export function initDb() {
   return db;
 }
 
-export * from "./helpers.ts";
+export * from "./helpers";

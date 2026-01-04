@@ -1,0 +1,18 @@
+#!/usr/bin/env sh
+set -eu
+
+# Format and lint Deno source
+printf "[pre-commit] Checking format...\n"
+deno fmt --check || { printf "Format check failed.\n"; exit 1; }
+
+printf "[pre-commit] Running Deno lint...\n"
+deno lint || { printf "Lint failed.\n"; exit 1; }
+
+# Run Deno tests (quick unit tests)
+printf "[pre-commit] Running Deno tests...\n"
+deno task test:deno || { printf "Deno tests failed.\n"; exit 1; }
+
+# Vitest test suite is not executed by this pre-commit hook.
+# Run Vitest separately (for example via a dedicated task or in CI).
+
+printf "[pre-commit] All checks passed.\n"

@@ -1,32 +1,46 @@
 import { Database } from "https://deno.land/x/sqlite3@0.12.0/mod.ts";
-import { Video, Transcript, VideoRow, TranscriptRow, VideoParams, TranscriptParams } from "../types.ts";
-import { executeQuery, getSingleRow, getRows } from "./utils.ts";
+import {
+  Transcript,
+  TranscriptParams,
+  TranscriptRow,
+  Video,
+  VideoParams,
+  VideoRow,
+} from "../shared/types";
+import { executeQuery, getRows, getSingleRow } from "./utils";
 
 const transformVideo = ([id, file_path, created_at]: VideoRow): Video => ({
   id,
   file_path,
-  created_at
+  created_at,
 });
 
-const transformTranscript = ([id, video_id, content, segments, created_at]: TranscriptRow): Transcript => ({
+const transformTranscript = ([
   id,
   video_id,
   content,
   segments,
-  created_at
+  created_at,
+]: TranscriptRow): Transcript => ({
+  id,
+  video_id,
+  content,
+  segments,
+  created_at,
 });
 
 export function insertVideo(db: Database, video: Video) {
   const params: VideoParams = {
     id: video.id,
     file_path: video.file_path,
-    created_at: video.created_at
+    created_at: video.created_at,
   };
 
-  executeQuery(db,
+  executeQuery(
+    db,
     `INSERT INTO videos (id, file_path, created_at)
      VALUES (:id, :file_path, :created_at)`,
-    params
+    params,
   );
 }
 
@@ -35,7 +49,7 @@ export function getVideoById(db: Database, id: string): Video | null {
     db,
     "SELECT * FROM videos WHERE id = :id",
     { id },
-    transformVideo
+    transformVideo,
   );
 }
 
@@ -44,7 +58,7 @@ export function getAllVideos(db: Database): Video[] {
     db,
     "SELECT * FROM videos ORDER BY created_at DESC",
     {},
-    transformVideo
+    transformVideo,
   );
 }
 
@@ -54,38 +68,45 @@ export function insertTranscript(db: Database, transcript: Transcript) {
     video_id: transcript.video_id,
     content: transcript.content,
     segments: transcript.segments,
-    created_at: transcript.created_at
+    created_at: transcript.created_at,
   };
 
-  executeQuery(db,
+  executeQuery(
+    db,
     `INSERT INTO transcripts (id, video_id, content, segments, created_at)
      VALUES (:id, :video_id, :content, :segments, :created_at)`,
-    params
+    params,
   );
 }
 
-export function getTranscriptByVideoId(db: Database, videoId: string): Transcript | null {
+export function getTranscriptByVideoId(
+  db: Database,
+  videoId: string,
+): Transcript | null {
   return getSingleRow<TranscriptRow, Transcript>(
     db,
     "SELECT * FROM transcripts WHERE video_id = :video_id",
     { video_id: videoId },
-    transformTranscript
+    transformTranscript,
   );
 }
 
-export function searchTranscripts(db: Database, searchQuery: string): Transcript[] {
+export function searchTranscripts(
+  db: Database,
+  searchQuery: string,
+): Transcript[] {
   return getRows<TranscriptRow, Transcript>(
     db,
     "SELECT * FROM transcripts WHERE content LIKE :search",
     { search: `%${searchQuery}%` },
-    transformTranscript
+    transformTranscript,
   );
 }
 
 export function deleteTranscriptByVideoId(db: Database, videoId: string) {
-    db.run("DELETE FROM transcripts WHERE video_id = ?", [videoId]);
+  db.run("DELETE FROM transcripts WHERE video_id = ?", [videoId]);
 }
 
 export function deleteVideoById(db: Database, videoId: string) {
-    db.run("DELETE FROM videos WHERE id = ?", [videoId]);
+  db.run("DELETE FROM videos WHERE id = ?", [videoId]);
 }
