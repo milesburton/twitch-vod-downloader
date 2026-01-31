@@ -19,10 +19,9 @@ data/*
 *.log
 *.tmp
 
-# Node.js dependencies and coverage
+# Node.js/Bun dependencies
 node_modules/
+
+# Test coverage (if using external tools)
 coverage/
-.coverage/
 *.lcov
-coverage-summary.json
-.nyc_output/
