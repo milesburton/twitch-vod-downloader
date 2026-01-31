@@ -2,6 +2,7 @@
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 ![Bun](https://img.shields.io/badge/Bun-1.2.0-blueviolet?logo=bun)
+![Biome](https://img.shields.io/badge/Biome-2.3.13-green?logo=biome)
 ![Test Coverage](https://img.shields.io/badge/coverage-75.91%25-green)
 
 **Archive Twitch VODs with AI-powered transcripts and chapters.**
@@ -36,25 +37,25 @@ This tool downloads Twitch VODs, generates searchable transcripts using OpenAI W
    SPECIFIC_VODS=                  # comma-separated VOD IDs (optional)
    ENABLE_TRANSCRIPTS=false        # set to 'true' to enable Whisper
    USE_GPU=true                    # set to 'false' for CPU-only
-   WHISPER_MODEL=large-v2          # tiny, base, small, medium, large, large-v2
-   CONCURRENT_CHUNK_PROCESS=1      # parallel transcript chunks
+   WHISPER_MODEL=large-v2          # model size (affects accuracy/speed)
+   CONCURRENT_CHUNK_PROCESS=1      # parallel chunks for transcription
+   INCLUDE_TRANSCRIPT_DURATION=false
    ```
 
-4. **Run:**
+4. **Run the downloader:**
    ```bash
    bun run src/main.ts
    ```
 
-## What It Does
+## Features
 
 ### 1. Download VODs
-- Fetches videos from any Twitch channel
-- Supports retry logic for reliability
-- Organizes with date-prefixed filenames: `YYYY-MM-DD_vod_<id>.mp4`
+- Fetches video metadata from Twitch API
+- Downloads using yt-dlp with retry logic
+- Stores videos with date-prefixed filenames
 
-### 2. Generate Transcripts (Optional)
-- Converts video to audio (WAV format)
-- Processes with OpenAI Whisper for accuracy
+### 2. Generate Transcripts
+- OpenAI Whisper AI transcription
 - Handles long videos via chunking with overlap
 - GPU-accelerated when available
 
@@ -81,6 +82,12 @@ FILTER_CRITERIA=latest bun run src/main.ts
 SPECIFIC_VODS=12345678,87654321 bun run src/main.ts
 ```
 
+### List downloaded content:
+```bash
+bun run src/main.ts list            # List all downloaded videos
+bun run src/main.ts list-transcripts # List all transcript files
+```
+
 ### Process chapters for a video:
 ```bash
 bun run src/chapters/chapter-processor.ts <video_id>
@@ -91,33 +98,57 @@ bun run src/chapters/chapter-processor.ts <video_id>
 sqlite3 data/db/sqlite.db "SELECT * FROM videos ORDER BY created_at DESC;"
 ```
 
+## Alternative Setup (Docker Compose)
+
+If you prefer not to use VS Code Dev Containers:
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/milesburton/twitch-vod-downloader.git
+   cd twitch-vod-downloader
+   ```
+
+2. **Create `.env` file** (see configuration above)
+
+3. **Build and run:**
+   ```bash
+   docker compose up --build        # Run in foreground
+   docker compose up -d --build     # Run in background
+   docker compose logs -f           # View logs
+   docker compose down              # Stop container
+   ```
+
 ## Project Structure
 
 ```
-data/
-├── videos/       # Downloaded MP4 files
-├── audio/        # Extracted WAV files (temporary)
-├── transcripts/  # JSON transcript files
-├── db/          # SQLite database
-└── temp/        # Temporary processing files
-
-src/
-├── main.ts                  # Entry point
-├── services/
-│   ├── download.ts         # VOD downloading
-│   ├── scraper.ts          # Twitch API interaction
-│   └── video-manager.ts    # Metadata management
-├── transcript/
-│   └── transcript.ts       # Whisper integration
-├── chapters/
-│   ├── chapter-processor.ts # Chapter generation
-│   └── chapter-utils.ts     # TensorFlow utilities
-├── db/
-│   ├── index.ts            # Database initialization
-│   └── helpers.ts          # CRUD operations
-└── shared/
-    ├── utils.ts            # Common utilities
-    └── types.ts            # TypeScript definitions
+├── data
+│   ├── audio            # Extracted audio files (.wav)
+│   ├── db               # SQLite database (sqlite.db)
+│   ├── temp             # Temporary processing files
+│   ├── videos           # Downloaded videos (.mp4)
+│   └── transcripts      # Generated transcripts
+├── src
+│   ├── db/              # Database operations
+│   │   ├── index.ts     # Initialization
+│   │   └── helpers.ts   # CRUD operations
+│   ├── services/        # Core services
+│   │   ├── download.ts  # VOD download logic
+│   │   ├── scraper.ts   # Twitch API integration
+│   │   └── video-manager.ts
+│   ├── transcript/      # Transcription
+│   │   ├── transcript.ts
+│   │   └── transcript-helpers.ts
+│   ├── chapters/        # Chapter processing
+│   │   ├── chapter-processor.ts
+│   │   └── chapter-utils.ts
+│   ├── shared/          # Utilities
+│   │   ├── utils.ts
+│   │   ├── types.ts
+│   │   └── pure/utils-pure.ts
+│   └── main.ts          # Entry point
+├── .devcontainer/       # Dev container config
+├── docker-compose.yml
+└── README.md
 ```
 
 ## Development
@@ -146,15 +177,17 @@ Current: **75.91% coverage** with 84+ tests
 - `created_at`
 
 **chapters:**
-- `id`, `video_id`, `start_time`, `end_time`
-- `content`, `summary`, `title`
+- `id` (PRIMARY KEY)
+- `video_id` (FOREIGN KEY)
+- `start_time`, `end_time` (seconds)
+- `title`, `summary`, `content`
 - `created_at`
 
 ## Environment Variables
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `CHANNEL_NAME` | - | **Required.** Twitch channel to download from |
+| `CHANNEL_NAME` | *required* | Twitch channel to download from |
 | `FILTER_CRITERIA` | `""` | `latest`, `first`, or empty for all |
 | `SPECIFIC_VODS` | `""` | Comma-separated VOD IDs (overrides filter) |
 | `ENABLE_TRANSCRIPTS` | `false` | Enable Whisper transcription |
@@ -172,10 +205,6 @@ Current: **75.91% coverage** with 84+ tests
 - **Media:** FFmpeg, yt-dlp
 - **Dev Environment:** Docker + NVIDIA CUDA support
 
-## License
-
-MIT License - see [LICENSE](LICENSE) file for details.
-
 ## Contributing
 
 This project uses:
@@ -184,3 +213,13 @@ This project uses:
 - **TypeScript** for type safety
 
 Pull requests welcome!
+
+## Important Notes
+
+- **Twitch API:** Adhere to Twitch's API usage guidelines and rate limits
+- **Storage:** Downloading VODs and generating transcripts can consume significant disk space
+- **Whisper Model:** Different model sizes offer different accuracy/speed tradeoffs (`tiny`, `base`, `small`, `medium`, `large`, `large-v2`)
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
