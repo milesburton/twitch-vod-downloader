@@ -4,6 +4,13 @@
     "dockerfile": "Dockerfile",
     "context": ".."
   },
+  "forwardPorts": [8080],
+  "portsAttributes": {
+    "8080": {
+      "label": "FileBrowser",
+      "onAutoForward": "notify"
+    }
+  },
   "customizations": {
     "vscode": {
       "extensions": [
@@ -32,7 +39,8 @@
         "ms-vscode.sqltools",
         "ms-vscode.vscode-sqlite",
         "github.copilot",
-        "github.vscode-github-actions"
+        "github.vscode-github-actions",
+        "ryanluker.vscode-coverage-gutters"
       ],
       "settings": {
         "terminal.integrated.defaultProfile.linux": "fish",
@@ -47,13 +55,13 @@
   "mounts": [
     {
       "source": "${localEnv:HOME}/.ssh",
-      "target": "/home/deno/.ssh",
+      "target": "/home/bun/.ssh",
       "type": "bind",
       "options": ["readonly"]
     },
     {
       "source": "fish_history",
-      "target": "/home/deno/.local/share/fish",
+      "target": "/home/bun/.local/share/fish",
       "type": "volume"
     },
     {
@@ -65,5 +73,6 @@
   "containerEnv": {
     "GIT_SSH_COMMAND": "ssh -o StrictHostKeyChecking=no"
   },
-  "postCreateCommand": "bun install && bun add -g @biomejs/biome"
+  "postCreateCommand": "bun install && bun add -g @biomejs/biome",
+  "postStartCommand": "nohup filebrowser -a 0.0.0.0 -p 8080 -r /workspace/data > /tmp/filebrowser.log 2>&1 &"
 }
