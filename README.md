@@ -1,6 +1,12 @@
+
 # 🎬 Twitch VOD Downloader 🤖
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+![Bun](https://img.shields.io/badge/Bun-1.2.0-blueviolet?logo=bun)
+![Biome](https://img.shields.io/badge/Biome-2.3.13-green?logo=biome)
+![sqlite3](https://img.shields.io/badge/sqlite3-3.45.2-lightgrey?logo=sqlite)
+![Test Coverage](https://img.shields.io/badge/coverage-in_progress-yellow)
+
 
 This project downloads Twitch VODs (Video On Demand), converts them to audio, and generates
 transcripts using Whisper. It's designed to be run within a
@@ -18,7 +24,7 @@ easy setup and consistent environment, but can also be run directly using Docker
 - 🧹 Cleans up temporary files
 - 🐳 Runs in a Dev Container for easy setup
 - 🐳 Can be built and run directly using docker on host
-- 🚀 Uses Deno for a modern runtime
+- ⚡ Uses Bun for a modern, fast runtime
 
 ## 🚀 Getting Started
 
@@ -78,15 +84,17 @@ easy setup and consistent environment, but can also be run directly using Docker
 
    Open a terminal _within the VS Code Dev Container_ (Terminal > New Terminal) and run:
 
-   ```bash
-   deno run --allow-net --allow-run --allow-read --allow-write --allow-env --allow-ffi src/main.ts
-   ```
 
-   Or use the provided alias:
+  ```bash
+  bun run src/main.ts
+  ```
 
-   ```bash
-   download
-   ```
+  Or use the new CLI commands:
+
+  ```bash
+  bun run src/main.ts list            # List all downloaded videos
+  bun run src/main.ts list-transcripts # List all transcript files
+  ```
 
    Permissions explanation:
 
@@ -102,15 +110,13 @@ easy setup and consistent environment, but can also be run directly using Docker
 
 To process chapters for a specific VOD, run:
 
-```bash
-deno run --allow-read --allow-write --allow-net --allow-env --allow-ffi src/chapters/chapter-processor.ts <video_id>
-```
-
-Or use the provided alias:
 
 ```bash
-process-chapters <video_id>
+bun run src/chapters/chapter-processor.ts <video_id>
 ```
+
+Or use the new CLI command if you add one.
+
 
 This will analyse the transcript and generate chapter markers for easier navigation through the
 video content.
@@ -199,8 +205,7 @@ provided you have Docker installed on your host machine.
 │   │       └── utils-pure.ts
 │   └── main.ts          # Main application logic
 ├── .devcontainer        # Configuration of devcontainer
-├── deno.json            # Deno configuration file
-├── deno.lock            # Deno lock file for dependencies
+├── bun.lock             # Bun lock file for dependencies
 ├── docker-compose.yml   # Docker compose config
 ├── LICENSE              # MIT License
 └── README.md            # This file
@@ -238,7 +243,7 @@ This project saves data in several locations within the `data` directory:
 
 - Deno unit tests:
   ```
-  deno task test:deno
+  bun test
   ```
 
 - **Chapters (`data/transcripts`):** Generated chapter information is stored alongside the
@@ -256,7 +261,7 @@ You can interact with the SQLite database using various tools:
 - **DB Browser for SQLite:** A free, user-friendly GUI tool
   ([https://sqlitebrowser.org/](https://sqlitebrowser.org/))
 - **`sqlite3` command-line tool:** A command-line interface for SQLite databases
-- **Deno's `sqlite3` module:** Write additional Deno scripts to query the data
+-- **Node's `sqlite3` module:** Write additional Node/Bun scripts to query the data
 - **Other language libraries:** Use SQLite libraries in languages like Python
 
 **Example (using `sqlite3` command-line tool within the Dev Container):**

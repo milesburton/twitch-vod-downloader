@@ -1,8 +1,9 @@
-import { Database } from "https://deno.land/x/sqlite3@0.12.0/mod.ts";
+import Database from "sqlite3";
 import { saveVideoMetadata } from "./video-manager.js";
 import { execWithLogs, formatDatePrefix, getDataPath, getTempFilePath } from "../shared/utils";
 import { Video } from "../shared/types";
-import { join } from "https://deno.land/std@0.210.0/path/mod.ts";
+import { join } from "path";
+import { promises as fs } from "fs";
 
 async function attemptDownload(
   outputFile: string,
@@ -104,7 +105,7 @@ async function downloadTwitchVideo(
       return null;
     }
 
-    await Deno.rename(tempFilePath, finalOutputFile);
+    await fs.rename(tempFilePath, finalOutputFile);
 
     const video: Video = {
       id: videoID,
@@ -120,10 +121,10 @@ async function downloadTwitchVideo(
   } finally {
     if (tempFilePath) {
       try {
-        await Deno.stat(tempFilePath);
-        await Deno.remove(tempFilePath);
-      } catch (cleanupError) {
-        if (!(cleanupError instanceof Deno.errors.NotFound)) {
+        await fs.stat(tempFilePath);
+        await fs.rm(tempFilePath, { force: true });
+      } catch (cleanupError: any) {
+        if (cleanupError.code !== "ENOENT") {
           console.error("❌ Error cleaning up temporary file:", cleanupError);
         }
       }

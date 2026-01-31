@@ -19,7 +19,11 @@ services:
       - .env
     volumes:
       - .:/workspace
-      - ./data:/workspace/data
-      - ./data/videos:/workspace/data/videos
-      - ./data/transcripts:/workspace/data/transcripts
+      - data:/workspace/data
+      - videos:/workspace/data/videos
+      - transcripts:/workspace/data/transcripts
+    volumes:
+      data:
+      videos:
+      transcripts:
     command: ["bun", "run", "src/main.ts"]

@@ -1,18 +1,17 @@
-import { Database } from "https://deno.land/x/sqlite3@0.12.0/mod.ts";
+import Database from "sqlite3";
 import { execWithLogs, execWithOutput, getDataPath, readJsonFile } from "../shared/utils";
 import { Video, WhisperOutput } from "../shared/types";
 import { deleteTranscriptByVideoId, insertTranscript } from "../db/helpers";
-import { join } from "https://deno.land/std@0.208.0/path/mod.ts";
-import { ZodError } from "https://deno.land/x/zod@v3.22.4/mod.ts";
-import { config } from "https://deno.land/x/dotenv@v3.2.2/mod.ts";
+import { join } from "path";
+import { ZodError } from "zod";
 import { formatChunkNumber, isTextSimilar } from "./transcript-helpers.js";
+import { promises as fs } from "fs";
 
-const env = config();
-const USE_GPU = String(env.USE_GPU).toLowerCase() === "true";
+const USE_GPU = String(process.env.USE_GPU).toLowerCase() === "true";
 const INCLUDE_TRANSCRIPT_DURATION =
-  String(env.INCLUDE_TRANSCRIPT_DURATION).toLowerCase() === "true";
-const CONCURRENT_CHUNK_PROCESS = env.CONCURRENT_CHUNK_PROCESS;
-const WHISPER_MODEL = env.WHISPER_MODEL;
+  String(process.env.INCLUDE_TRANSCRIPT_DURATION).toLowerCase() === "true";
+const CONCURRENT_CHUNK_PROCESS = process.env.CONCURRENT_CHUNK_PROCESS || "2";
+const WHISPER_MODEL = process.env.WHISPER_MODEL || "base";
 const CHUNK_DURATION = 1_800;
 const OVERLAP_DURATION = 30;
 
@@ -169,8 +168,8 @@ async function generateTranscript(db: Database, video: Video) {
 
 async function prepareDirectories(audioDir: string, transcriptsDir: string) {
   await Promise.all([
-    Deno.mkdir(audioDir, { recursive: true }).catch(ignoreExistsError),
-    Deno.mkdir(transcriptsDir, { recursive: true }).catch(ignoreExistsError),
+    fs.mkdir(audioDir, { recursive: true }).catch(ignoreExistsError),
+    fs.mkdir(transcriptsDir, { recursive: true }).catch(ignoreExistsError),
   ]);
 }
 
@@ -213,7 +212,7 @@ async function convertVideoToAudio(videoPath: string, audioFile: string) {
       "vidToAudio.log",
     ]);
 
-    const fileInfo = await Deno.stat(audioFile);
+    const fileInfo = await fs.stat(audioFile);
     if (fileInfo.size === 0) {
       throw new Error("Generated audio file is empty");
     }
@@ -272,7 +271,7 @@ async function splitAudioIntoChunks(
         "error",
       ]);
 
-      const chunkStats = await Deno.stat(chunkFile);
+      const chunkStats = await fs.stat(chunkFile);
       console.log(
         `✓ Chunk ${index} created successfully: ${chunkStats.size} bytes`,
       );
@@ -325,7 +324,7 @@ async function getAudioDuration(
   } catch (error) {
     console.error("Error getting audio duration:", error);
     try {
-      const stats = await Deno.stat(audioFile);
+      const stats = await fs.stat(audioFile);
       console.log("File stats:", {
         exists: true,
         size: stats.size,
@@ -406,9 +405,10 @@ async function mergeTranscriptions(
   };
 
   const mergedJsonPath = join(transcriptsDir, `${videoId}_merged.json`);
-  await Deno.writeTextFile(
+  await fs.writeFile(
     mergedJsonPath,
     JSON.stringify(mergedOutput, null, 2),
+    "utf-8",
   );
   console.log(`✓ Merged transcript JSON saved to: ${mergedJsonPath}`);
 
@@ -481,33 +481,35 @@ async function handleError(db: Database, videoId: string, error: Error) {
 async function cleanupFiles(directory: string, videoId: string) {
   const transcriptsDir = getDataPath("transcripts");
 
-  for await (const entry of Deno.readDir(directory)) {
+  const entries = await fs.readdir(directory, { withFileTypes: true });
+  for (const entry of entries) {
     if (
-      entry.isFile &&
+      entry.isFile() &&
       (entry.name === `${videoId}_audio.wav` ||
         entry.name.startsWith(`chunk_${videoId}_`))
     ) {
-      await Deno.remove(join(directory, entry.name)).catch(() =>
+      await fs.rm(join(directory, entry.name), { force: true }).catch(() =>
         console.warn(`Could not remove file: ${entry.name}`)
       );
     }
   }
 
-  for await (const entry of Deno.readDir(transcriptsDir)) {
+  const transcriptEntries = await fs.readdir(transcriptsDir, { withFileTypes: true });
+  for (const entry of transcriptEntries) {
     if (
-      entry.isFile &&
+      entry.isFile() &&
       entry.name.startsWith(`chunk_${videoId}_`) &&
       entry.name.endsWith(".json")
     ) {
-      await Deno.remove(join(transcriptsDir, entry.name)).catch(() =>
+      await fs.rm(join(transcriptsDir, entry.name), { force: true }).catch(() =>
         console.warn(`Could not remove file: ${entry.name}`)
       );
     }
   }
 }
 
-function ignoreExistsError(error: Error) {
-  if (!(error instanceof Deno.errors.AlreadyExists)) {
+function ignoreExistsError(error: any) {
+  if (error.code !== "EEXIST") {
     throw error;
   }
 }

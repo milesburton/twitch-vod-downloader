@@ -1,5 +1,6 @@
+
 import { formatChunkNumber, isTextSimilar } from "./transcript-helpers.js";
-import { test } from "../testing/test-helpers";
+import { test, expect } from "bun:test";
 
 test("formatChunkNumber pads based on total chunks", () => {
   const total = 123; // padding width 3

@@ -1,12 +1,13 @@
 
 import path from "path";
 import fs from "fs";
+import { fileURLToPath } from "url";
 
-const __filename = typeof __filename !== 'undefined' ? __filename : (new URL('', import.meta.url).pathname);
-const __dirname = typeof __dirname !== 'undefined' ? __dirname : path.dirname(__filename);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export function getProjectRoot(): string {
-  return path.dirname(__dirname);
+  return path.resolve(__dirname, "../..");
 }
 
 export function getDataPath(subdir: string): string {

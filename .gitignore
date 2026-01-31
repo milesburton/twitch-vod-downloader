@@ -22,3 +22,7 @@ data/*
 # Node.js dependencies and coverage
 node_modules/
 coverage/
+.coverage/
+*.lcov
+coverage-summary.json
+.nyc_output/

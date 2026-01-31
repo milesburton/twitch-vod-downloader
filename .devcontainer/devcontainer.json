@@ -64,5 +64,6 @@
   ],
   "containerEnv": {
     "GIT_SSH_COMMAND": "ssh -o StrictHostKeyChecking=no"
-  }
+  },
+  "postCreateCommand": "bun install && bun add -g @biomejs/biome"
 }
