@@ -23,6 +23,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     nodejs \
     npm \
+    htop \
+    ncdu \
+    jq \
+    lnav \
     && gem install lolcat \
     && pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121 \
     && pip3 install --no-cache-dir --upgrade "git+https://github.com/openai/whisper.git@v20231117" \
@@ -31,6 +35,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Install Bun
 RUN curl -fsSL https://bun.sh/install | bash
+
+# Install FileBrowser for web-based file browsing
+RUN curl -fsSL https://raw.githubusercontent.com/filebrowser/get/master/get.sh | bash
 
 
 # Create user and set up directories
@@ -62,20 +69,32 @@ RUN echo '# Environment setup' > /home/bun/.config/fish/config.fish && \
     echo '  echo "Welcome to the Twitch VOD Downloader Dev Container!" | lolcat' >> /home/bun/.config/fish/config.fish && \
     echo '  echo "-------------------------------------------------" | lolcat' >> /home/bun/.config/fish/config.fish && \
     echo '  echo "Available aliases:" | lolcat' >> /home/bun/.config/fish/config.fish && \
-    echo '  echo "  - download: Runs the VOD downloader script." | lolcat' >> /home/bun/.config/fish/config.fish && \
-    echo '  echo "  - process-chapters: Processes chapters for a specific VOD." | lolcat' >> /home/bun/.config/fish/config.fish && \
-    echo '  echo "  - test: Run all tests." | lolcat' >> /home/bun/.config/fish/config.fish && \
+    echo '  echo "  - download: Run VOD downloader" | lolcat' >> /home/bun/.config/fish/config.fish && \
+    echo '  echo "  - test: Run tests | test:coverage: Run with coverage" | lolcat' >> /home/bun/.config/fish/config.fish && \
+    echo '  echo "  - db: Open SQLite database | db-videos: List videos" | lolcat' >> /home/bun/.config/fish/config.fish && \
+    echo '  echo "  - disk: Check disk usage | browse: File browser info" | lolcat' >> /home/bun/.config/fish/config.fish && \
     echo '  echo "-------------------------------------------------" | lolcat' >> /home/bun/.config/fish/config.fish && \
-    echo '  echo ""' >> /home/bun/.config/fish/config.fish && \
-    echo '  echo "To run the downloader, type: download" | lolcat' >> /home/bun/.config/fish/config.fish && \
-    echo '  echo "To process chapters, type: process-chapters <video_id>" | lolcat' >> /home/bun/.config/fish/config.fish && \
-    echo '  echo "To run tests, type: test" | lolcat' >> /home/bun/.config/fish/config.fish && \
+    echo '  echo "File browser available at http://localhost:8080" | lolcat' >> /home/bun/.config/fish/config.fish && \
     echo '  echo ""' >> /home/bun/.config/fish/config.fish && \
     echo 'end' >> /home/bun/.config/fish/config.fish && \
     echo '' >> /home/bun/.config/fish/config.fish && \
+    echo '# Application aliases' >> /home/bun/.config/fish/config.fish && \
     echo 'alias download="bun run src/main.ts"' >> /home/bun/.config/fish/config.fish && \
     echo 'alias process-chapters="bun run src/chapters/chapter-processor.ts"' >> /home/bun/.config/fish/config.fish && \
-    echo 'alias test="bun test"' >> /home/bun/.config/fish/config.fish
+    echo '' >> /home/bun/.config/fish/config.fish && \
+    echo '# Testing aliases' >> /home/bun/.config/fish/config.fish && \
+    echo 'alias test="bun test"' >> /home/bun/.config/fish/config.fish && \
+    echo 'alias test:coverage="bun test --coverage"' >> /home/bun/.config/fish/config.fish && \
+    echo 'alias test:watch="bun test --watch"' >> /home/bun/.config/fish/config.fish && \
+    echo '' >> /home/bun/.config/fish/config.fish && \
+    echo '# Database aliases' >> /home/bun/.config/fish/config.fish && \
+    echo 'alias db="sqlite3 /workspace/data/db/sqlite.db"' >> /home/bun/.config/fish/config.fish && \
+    echo 'alias db-videos="sqlite3 /workspace/data/db/sqlite.db \"SELECT * FROM videos ORDER BY created_at DESC;\""' >> /home/bun/.config/fish/config.fish && \
+    echo 'alias db-transcripts="sqlite3 /workspace/data/db/sqlite.db \"SELECT video_id, LENGTH(content) as content_length, created_at FROM transcripts;\""' >> /home/bun/.config/fish/config.fish && \
+    echo '' >> /home/bun/.config/fish/config.fish && \
+    echo '# Debugging and utility aliases' >> /home/bun/.config/fish/config.fish && \
+    echo 'alias disk="ncdu /workspace/data"' >> /home/bun/.config/fish/config.fish && \
+    echo 'alias browse="echo \"File browser available at http://localhost:8080\""' >> /home/bun/.config/fish/config.fish
 
 # Set Fish as the shell
 SHELL ["/usr/bin/fish", "-c"]
