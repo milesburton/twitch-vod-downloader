@@ -1,8 +1,8 @@
 FROM nvidia/cuda:12.1.0-base-ubuntu22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
-ENV DENO_INSTALL=/home/deno/.deno
-ENV PATH=${DENO_INSTALL}/bin:${PATH}
+ENV BUN_INSTALL=/home/bun/.bun
+ENV PATH=${BUN_INSTALL}/bin:${PATH}
 
 # Install dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -20,7 +20,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     vim \
     ssh \
     tree \
-    ssh \
     ca-certificates \
     nodejs \
     npm \
@@ -30,58 +29,64 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && pip install --no-cache-dir --upgrade yt-dlp \
     && rm -rf /var/lib/apt/lists/*
 
+# Install Bun
+RUN curl -fsSL https://bun.sh/install | bash
+
+
 # Create user and set up directories
-RUN useradd -m -s /usr/bin/fish deno \
+RUN useradd -m -s /usr/bin/fish bun \
     && mkdir -p /workspace \
-    && chown -R deno:deno /workspace
+    && chown -R bun:bun /workspace
+
 
 # Add support for other users that may be set in devcontainer.json
-RUN mkdir -p /workspaces && chown -R deno:deno /workspaces
+RUN mkdir -p /workspaces && chown -R bun:bun /workspaces
 
-# Set up fish for the deno user
-USER deno
-WORKDIR /home/deno
+
+# Set up fish for the bun user
+USER bun
+WORKDIR /home/bun
 
 # Ensure Fish config directory exists
-RUN mkdir -p /home/deno/.config/fish
+RUN mkdir -p /home/bun/.config/fish
 
-# Install Deno
-RUN curl -fsSL https://deno.land/x/install/install.sh | sh
-
-# Update Fish config
-RUN echo '# Environment setup' > /home/deno/.config/fish/config.fish && \
-    echo 'set -gx DENO_INSTALL "$HOME/.deno"' >> /home/deno/.config/fish/config.fish && \
-    echo 'fish_add_path $DENO_INSTALL/bin' >> /home/deno/.config/fish/config.fish && \
-    echo 'set -gx PATH $DENO_INSTALL/bin $PATH' >> /home/deno/.config/fish/config.fish && \
-    echo '' >> /home/deno/.config/fish/config.fish && \
-    echo 'if status is-interactive' >> /home/deno/.config/fish/config.fish && \
-    echo '  echo ""' >> /home/deno/.config/fish/config.fish && \
-    echo '  echo "-------------------------------------------------" | lolcat' >> /home/deno/.config/fish/config.fish && \
-    echo '  echo "Welcome to the Twitch VOD Downloader Dev Container!" | lolcat' >> /home/deno/.config/fish/config.fish && \
-    echo '  echo "-------------------------------------------------" | lolcat' >> /home/deno/.config/fish/config.fish && \
-    echo '  echo "Available aliases:" | lolcat' >> /home/deno/.config/fish/config.fish && \
-    echo '  echo "  - download: Runs the VOD downloader script." | lolcat' >> /home/deno/.config/fish/config.fish && \
-    echo '  echo "  - process-chapters: Processes chapters for a specific VOD." | lolcat' >> /home/deno/.config/fish/config.fish && \
-    echo '  echo "-------------------------------------------------" | lolcat' >> /home/deno/.config/fish/config.fish && \
-    echo '  echo ""' >> /home/deno/.config/fish/config.fish && \
-    echo '  echo "To run the downloader, type: download" | lolcat' >> /home/deno/.config/fish/config.fish && \
-    echo '  echo "To process chapters, type: process-chapters <video_id>" | lolcat' >> /home/deno/.config/fish/config.fish && \
-    echo '  echo ""' >> /home/deno/.config/fish/config.fish && \
-    echo 'end' >> /home/deno/.config/fish/config.fish && \
-    echo '' >> /home/deno/.config/fish/config.fish && \
-    echo 'alias download="$DENO_INSTALL/bin/deno run --allow-net --allow-run --allow-read --allow-write --allow-env --allow-ffi src/main.ts"' >> /home/deno/.config/fish/config.fish && \
-    echo 'alias process-chapters="$DENO_INSTALL/bin/deno run --allow-read --allow-write --allow-net --allow-env --allow-ffi src/chapters/chapter-processor.ts"' >> /home/deno/.config/fish/config.fish
+# Update Fish config for Bun
+RUN echo '# Environment setup' > /home/bun/.config/fish/config.fish && \
+    echo 'set -gx BUN_INSTALL "$HOME/.bun"' >> /home/bun/.config/fish/config.fish && \
+    echo 'fish_add_path $BUN_INSTALL/bin' >> /home/bun/.config/fish/config.fish && \
+    echo 'set -gx PATH $BUN_INSTALL/bin $PATH' >> /home/bun/.config/fish/config.fish && \
+    echo '' >> /home/bun/.config/fish/config.fish && \
+    echo 'if status is-interactive' >> /home/bun/.config/fish/config.fish && \
+    echo '  echo ""' >> /home/bun/.config/fish/config.fish && \
+    echo '  echo "-------------------------------------------------" | lolcat' >> /home/bun/.config/fish/config.fish && \
+    echo '  echo "Welcome to the Twitch VOD Downloader Dev Container!" | lolcat' >> /home/bun/.config/fish/config.fish && \
+    echo '  echo "-------------------------------------------------" | lolcat' >> /home/bun/.config/fish/config.fish && \
+    echo '  echo "Available aliases:" | lolcat' >> /home/bun/.config/fish/config.fish && \
+    echo '  echo "  - download: Runs the VOD downloader script." | lolcat' >> /home/bun/.config/fish/config.fish && \
+    echo '  echo "  - process-chapters: Processes chapters for a specific VOD." | lolcat' >> /home/bun/.config/fish/config.fish && \
+    echo '  echo "  - test: Run all tests." | lolcat' >> /home/bun/.config/fish/config.fish && \
+    echo '  echo "-------------------------------------------------" | lolcat' >> /home/bun/.config/fish/config.fish && \
+    echo '  echo ""' >> /home/bun/.config/fish/config.fish && \
+    echo '  echo "To run the downloader, type: download" | lolcat' >> /home/bun/.config/fish/config.fish && \
+    echo '  echo "To process chapters, type: process-chapters <video_id>" | lolcat' >> /home/bun/.config/fish/config.fish && \
+    echo '  echo "To run tests, type: test" | lolcat' >> /home/bun/.config/fish/config.fish && \
+    echo '  echo ""' >> /home/bun/.config/fish/config.fish && \
+    echo 'end' >> /home/bun/.config/fish/config.fish && \
+    echo '' >> /home/bun/.config/fish/config.fish && \
+    echo 'alias download="bun run src/main.ts"' >> /home/bun/.config/fish/config.fish && \
+    echo 'alias process-chapters="bun run src/chapters/chapter-processor.ts"' >> /home/bun/.config/fish/config.fish && \
+    echo 'alias test="bun test"' >> /home/bun/.config/fish/config.fish
 
 # Set Fish as the shell
 SHELL ["/usr/bin/fish", "-c"]
 
 # Verify installations (optional, but good to have)
-RUN $DENO_INSTALL/bin/deno --version && \
+RUN $BUN_INSTALL/bin/bun --version && \
     python3 --version && \
     whisper --help
 
-# Ensure workspace directory exists and is owned by deno
+# Ensure workspace directory exists and is owned by bun
 USER root
-RUN mkdir -p /workspace && chown -R deno:deno /workspace
-USER deno
+RUN mkdir -p /workspace && chown -R bun:bun /workspace
+USER bun
 WORKDIR /workspace

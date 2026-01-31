@@ -1,4 +1,4 @@
-import { filterVideoIDs, formatDatePrefix } from "./utils-pure";
+import { filterVideoIDs, formatDatePrefix } from "./utils-pure.js";
 import { test } from "../../testing/test-helpers";
 
 test("formatDatePrefix returns YYYY-MM-DD", () => {

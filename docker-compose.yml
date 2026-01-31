@@ -20,7 +20,6 @@ services:
     volumes:
       - .:/workspace
       - ./data:/workspace/data
-      - ./videos.json:/app/videos.json
-      - ./transcripts.json:/app/transcripts.json
-      - ./vods:/app/vods
-    command: ["deno", "task", "start"]
+      - ./data/videos:/workspace/data/videos
+      - ./data/transcripts:/workspace/data/transcripts
+    command: ["bun", "run", "src/main.ts"]

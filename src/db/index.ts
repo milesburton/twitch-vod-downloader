@@ -1,32 +1,28 @@
-import { Database } from "https://deno.land/x/sqlite3@0.12.0/mod.ts";
-import { getDataPath } from "../shared/utils";
-import { join } from "https://deno.land/std@0.208.0/path/mod.ts";
+import sqlite3 from "sqlite3";
+import path from "path";
+import { getDataPath } from "../shared/utils.js";
+
+const { Database } = sqlite3;
 
 export function initDb() {
   const dbPath = getDataPath("db");
-  const dbFile = join(dbPath, "sqlite.db");
+  const dbFile = path.join(dbPath, "sqlite.db");
   const db = new Database(dbFile);
 
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS videos (
+  db.serialize(() => {
+    db.run(`CREATE TABLE IF NOT EXISTS videos (
       id TEXT PRIMARY KEY,
       file_path TEXT,
       created_at TEXT
-    )
-  `);
-
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS transcripts (
+    )`);
+    db.run(`CREATE TABLE IF NOT EXISTS transcripts (
       id TEXT PRIMARY KEY,
       video_id TEXT REFERENCES videos(id),
       content TEXT,
       segments TEXT,
       created_at TEXT
-    )
-  `);
-
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS chapters (
+    )`);
+    db.run(`CREATE TABLE IF NOT EXISTS chapters (
       id TEXT PRIMARY KEY,
       video_id TEXT REFERENCES videos(id),
       start_time INTEGER,
@@ -35,10 +31,9 @@ export function initDb() {
       summary TEXT,
       title TEXT,
       created_at TEXT
-    )
-  `);
-
+    )`);
+  });
   return db;
 }
 
-export * from "./helpers";
+export * from "./helpers.js";

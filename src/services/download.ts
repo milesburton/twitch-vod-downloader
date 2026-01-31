@@ -1,5 +1,5 @@
 import { Database } from "https://deno.land/x/sqlite3@0.12.0/mod.ts";
-import { saveVideoMetadata } from "./video-manager";
+import { saveVideoMetadata } from "./video-manager.js";
 import { execWithLogs, formatDatePrefix, getDataPath, getTempFilePath } from "../shared/utils";
 import { Video } from "../shared/types";
 import { join } from "https://deno.land/std@0.210.0/path/mod.ts";
@@ -57,7 +57,34 @@ async function downloadTwitchVideo(
   }
 
   const videoDir = getDataPath("videos");
-  const datePrefix = formatDatePrefix(new Date());
+
+  // Fetch upload date from Twitch API
+  let uploadDate: string | null = null;
+  try {
+    const apiUrl = `https://api.twitch.tv/helix/videos?id=${videoID}`;
+    const clientId = "kimne78kx3ncx6brgo4mv6wki5h1ko";
+    const resp = await fetch(apiUrl, {
+      headers: {
+        "Client-Id": clientId,
+        // If you have an OAuth token, add: 'Authorization': 'Bearer <token>'
+      },
+    });
+    if (resp.ok) {
+      const data = await resp.json();
+      if (data.data && data.data.length > 0 && data.data[0].created_at) {
+        uploadDate = data.data[0].created_at;
+      }
+    }
+  } catch (e) {
+    console.warn("Could not fetch upload date from Twitch API:", e);
+  }
+
+  let datePrefix: string;
+  if (uploadDate) {
+    datePrefix = formatDatePrefix(new Date(uploadDate));
+  } else {
+    datePrefix = formatDatePrefix(new Date());
+  }
   const finalOutputFile = join(videoDir, `${datePrefix}_vod_${videoID}.mp4`);
 
   let tempFilePath: string | null = null;
@@ -82,7 +109,7 @@ async function downloadTwitchVideo(
     const video: Video = {
       id: videoID,
       file_path: finalOutputFile,
-      created_at: new Date().toISOString(),
+      created_at: uploadDate ? new Date(uploadDate).toISOString() : new Date().toISOString(),
     };
 
     saveVideoMetadata(db, video);

@@ -1,13 +1,22 @@
-import { Database } from "https://deno.land/x/sqlite3@0.12.0/mod.ts";
+import sqlite3 from "sqlite3";
 import {
   Transcript,
-  TranscriptParams,
-  TranscriptRow,
   Video,
-  VideoParams,
-  VideoRow,
-} from "../shared/types";
-import { executeQuery, getRows, getSingleRow } from "./utils";
+} from "../shared/types.js";
+
+// Helper functions for transforming DB rows
+const transformVideo = (row) => ({
+  id: row.id,
+  file_path: row.file_path,
+  created_at: row.created_at,
+});
+const transformTranscript = (row) => ({
+  id: row.id,
+  video_id: row.video_id,
+  content: row.content,
+  segments: row.segments,
+  created_at: row.created_at,
+});
 
 const transformVideo = ([id, file_path, created_at]: VideoRow): Video => ({
   id,
@@ -29,19 +38,61 @@ const transformTranscript = ([
   created_at,
 });
 
-export function insertVideo(db: Database, video: Video) {
-  const params: VideoParams = {
-    id: video.id,
-    file_path: video.file_path,
-    created_at: video.created_at,
-  };
-
-  executeQuery(
-    db,
-    `INSERT INTO videos (id, file_path, created_at)
-     VALUES (:id, :file_path, :created_at)`,
-    params,
+export function insertVideo(db, video, cb) {
+  db.run(
+    `INSERT INTO videos (id, file_path, created_at) VALUES (?, ?, ?)`,
+    [video.id, video.file_path, video.created_at],
+    cb
   );
+}
+
+export function getVideoById(db, id, cb) {
+  db.get(
+    `SELECT * FROM videos WHERE id = ?`,
+    [id],
+    (err, row) => cb(err, row ? transformVideo(row) : null)
+  );
+}
+
+export function getAllVideos(db, cb) {
+  db.all(
+    `SELECT * FROM videos ORDER BY created_at DESC`,
+    [],
+    (err, rows) => cb(err, rows ? rows.map(transformVideo) : [])
+  );
+}
+
+export function insertTranscript(db, transcript, cb) {
+  db.run(
+    `INSERT INTO transcripts (id, video_id, content, segments, created_at) VALUES (?, ?, ?, ?, ?)`,
+    [transcript.id, transcript.video_id, transcript.content, transcript.segments, transcript.created_at],
+    cb
+  );
+}
+
+export function getTranscriptByVideoId(db, videoId, cb) {
+  db.get(
+    `SELECT * FROM transcripts WHERE video_id = ?`,
+    [videoId],
+    (err, row) => cb(err, row ? transformTranscript(row) : null)
+  );
+}
+
+export function searchTranscripts(db, searchQuery, cb) {
+  db.all(
+    `SELECT * FROM transcripts WHERE content LIKE ?`,
+    [`%${searchQuery}%`],
+    (err, rows) => cb(err, rows ? rows.map(transformTranscript) : [])
+  );
+}
+
+export function deleteTranscriptByVideoId(db, videoId, cb) {
+  db.run(`DELETE FROM transcripts WHERE video_id = ?`, [videoId], cb);
+}
+
+export function deleteVideoById(db, videoId, cb) {
+  db.run(`DELETE FROM videos WHERE id = ?`, [videoId], cb);
+}
 }
 
 export function getVideoById(db: Database, id: string): Video | null {

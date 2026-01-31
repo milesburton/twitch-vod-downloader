@@ -43,7 +43,7 @@
       }
     }
   },
-  "remoteUser": "deno",
+  "remoteUser": "bun",
   "mounts": [
     {
       "source": "${localEnv:HOME}/.ssh",

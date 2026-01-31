@@ -1,13 +1,15 @@
-import { Database } from "https://deno.land/x/sqlite3@0.12.0/mod.ts";
+import sqlite3 from "sqlite3";
+import path from "path";
+import fs from "fs";
 import {
   generateBulletPointSummary,
   generateChapterTitle,
   segmentTranscript,
-} from "./chapter-utils";
-import { getDataPath } from "../shared/utils";
-import { join } from "https://deno.land/std@0.208.0/path/mod.ts";
-import { ensureDir } from "https://deno.land/std@0.208.0/fs/mod.ts";
-import { type ProcessedChapter, TranscriptContent } from "../shared/types";
+} from "./chapter-utils.js";
+import { getDataPath, ensureDirExists } from "../shared/utils.js";
+import { type ProcessedChapter, TranscriptContent } from "../shared/types.js";
+
+const { Database } = sqlite3;
 
 function formatSecondsToTimestamp(seconds: number): string {
   const hours = Math.floor(seconds / 3600);
@@ -88,7 +90,7 @@ function generateYouTubeChapterDescription(
 }
 
 const dbPath = getDataPath("db");
-const dbFile = join(dbPath, "sqlite.db");
+const dbFile = path.join(dbPath, "sqlite.db");
 const db = new Database(dbFile);
 
 export async function processTranscript(videoId: string): Promise<void> {
@@ -171,22 +173,22 @@ export async function processTranscript(videoId: string): Promise<void> {
     }
     const youtubeChapterDescription = generateYouTubeChapterDescription(processedChapters);
     const youtubeDescPath = getDataPath("youtube-descriptions");
-    await ensureDir(youtubeDescPath);
-    const descriptionFilePath = join(
+    await ensureDirExists(youtubeDescPath);
+    const descriptionFilePath = path.join(
       youtubeDescPath,
       `${videoId}_chapters.txt`,
     );
     try {
-      await Deno.remove(descriptionFilePath);
+      await fs.promises.unlink(descriptionFilePath);
       console.log(
         `🗑️ Removed existing chapter description file: ${descriptionFilePath}`,
       );
     } catch (error) {
-      if (!(error instanceof Deno.errors.NotFound)) {
+      if (error.code !== "ENOENT") {
         throw error;
       }
     }
-    await Deno.writeTextFile(descriptionFilePath, youtubeChapterDescription);
+    await fs.promises.writeFile(descriptionFilePath, youtubeChapterDescription, "utf8");
     console.log(
       `📄 YouTube chapter description saved to: ${descriptionFilePath}`,
     );
@@ -210,11 +212,18 @@ export async function processTranscript(videoId: string): Promise<void> {
   }
 }
 
-if (import.meta.main) {
-  try {
-    await processTranscript(Deno.args[0]);
-  } catch (error) {
-    console.error("Failed to process transcript:", error);
-    Deno.exit(1);
-  }
+if (import.meta.url === process.argv[1] || import.meta.main) {
+  (async () => {
+    try {
+      const videoId = process.argv[2];
+      if (!videoId) {
+        console.error("No videoId provided as argument.");
+        process.exit(1);
+      }
+      await processTranscript(videoId);
+    } catch (error) {
+      console.error("Failed to process transcript:", error);
+      process.exit(1);
+    }
+  })();
 }

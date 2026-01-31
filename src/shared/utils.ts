@@ -1,21 +1,23 @@
-import { dirname, fromFileUrl, join } from "https://deno.land/std@0.210.0/path/mod.ts";
 
-const __filename = fromFileUrl(import.meta.url);
-const __dirname = dirname(__filename);
+import path from "path";
+import fs from "fs";
+
+const __filename = typeof __filename !== 'undefined' ? __filename : (new URL('', import.meta.url).pathname);
+const __dirname = typeof __dirname !== 'undefined' ? __dirname : path.dirname(__filename);
 
 export function getProjectRoot(): string {
-  return dirname(__dirname);
+  return path.dirname(__dirname);
 }
 
 export function getDataPath(subdir: string): string {
-  return join(getProjectRoot(), "data", subdir);
+  return path.join(getProjectRoot(), "data", subdir);
 }
 
 export async function ensureDirExists(dirPath: string): Promise<void> {
   try {
-    await Deno.mkdir(dirPath, { recursive: true });
+    await fs.promises.mkdir(dirPath, { recursive: true });
   } catch (error) {
-    if (!(error instanceof Deno.errors.AlreadyExists)) {
+    if (error.code !== "EEXIST") {
       throw error;
     }
   }
@@ -29,7 +31,7 @@ export async function getTempFilePath(
   await ensureDirExists(tempDir);
   const uniqueId = Date.now().toString(36) + Math.random().toString(36).substring(2);
   const tempFileName = `${prefix}_${uniqueId}${suffix}`;
-  return join(tempDir, tempFileName);
+  return path.join(tempDir, tempFileName);
 }
 
 export function formatDatePrefix(date: Date): string {
@@ -41,7 +43,7 @@ export function formatDatePrefix(date: Date): string {
 
 export async function readJsonFile<T>(file: string): Promise<T | []> {
   try {
-    const data = await Deno.readTextFile(file);
+    const data = await fs.promises.readFile(file, "utf8");
     return JSON.parse(data) as T;
   } catch {
     return [];
@@ -49,41 +51,35 @@ export async function readJsonFile<T>(file: string): Promise<T | []> {
 }
 
 export async function execWithLogs(command: string[]): Promise<number> {
-  const cmd = new Deno.Command(command[0], {
-    args: command.slice(1),
-    stdout: "piped",
-    stderr: "piped",
+  return new Promise((resolve, reject) => {
+    const proc = Bun.spawn(command, {
+      stdout: "pipe",
+      stderr: "pipe",
+    });
+    proc.stdout.pipeTo(new WritableStream({
+      write(chunk) {
+        process.stdout.write(chunk);
+      }
+    }));
+    proc.stderr.pipeTo(new WritableStream({
+      write(chunk) {
+        process.stderr.write(chunk);
+      }
+    }));
+    proc.exited.then(code => resolve(code)).catch(reject);
   });
-
-  const process = cmd.spawn();
-  const decoder = new TextDecoder();
-
-  const streamLogs = async (
-    reader: ReadableStreamDefaultReader<Uint8Array>,
-  ) => {
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      console.log(decoder.decode(value));
-    }
-  };
-
-  await Promise.all([
-    streamLogs(process.stdout.getReader()),
-    streamLogs(process.stderr.getReader()),
-  ]);
-
-  return (await process.status).code;
 }
 
 export async function execWithOutput(command: string[]): Promise<string> {
-  const cmd = new Deno.Command(command[0], {
-    args: command.slice(1),
-    stdout: "piped",
-    stderr: "piped",
+  const proc = Bun.spawn(command, {
+    stdout: "pipe",
+    stderr: "pipe",
   });
-  const { stdout } = await cmd.output();
-  return new TextDecoder().decode(stdout).trim();
+  let output = "";
+  for await (const chunk of proc.stdout) {
+    output += chunk.toString();
+  }
+  return output.trim();
 }
 
 export function filterVideoIDs(

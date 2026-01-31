@@ -5,7 +5,7 @@ import { deleteTranscriptByVideoId, insertTranscript } from "../db/helpers";
 import { join } from "https://deno.land/std@0.208.0/path/mod.ts";
 import { ZodError } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import { config } from "https://deno.land/x/dotenv@v3.2.2/mod.ts";
-import { formatChunkNumber, isTextSimilar } from "./transcript-helpers";
+import { formatChunkNumber, isTextSimilar } from "./transcript-helpers.js";
 
 const env = config();
 const USE_GPU = String(env.USE_GPU).toLowerCase() === "true";

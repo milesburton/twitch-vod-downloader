@@ -1,4 +1,4 @@
-import { formatChunkNumber, isTextSimilar } from "./transcript-helpers";
+import { formatChunkNumber, isTextSimilar } from "./transcript-helpers.js";
 import { test } from "../testing/test-helpers";
 
 test("formatChunkNumber pads based on total chunks", () => {

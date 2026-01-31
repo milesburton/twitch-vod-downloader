@@ -1,14 +1,16 @@
-import { downloadTwitchVideo } from "./services/download";
-import { generateTranscript } from "./transcript/transcript";
-import { getTranscriptByVideoId, initDb } from "./db/index";
-import { deleteVideoById, getVideoById } from "./db/helpers";
-import { config } from "https://deno.land/x/dotenv@v3.2.2/mod.ts";
-import { fetchVideoIDs } from "./services/scraper";
-import { ensureDirExists, filterVideoIDs, getDataPath } from "./shared/utils";
-import { join } from "https://deno.land/std@0.208.0/path/mod.ts";
-import { saveVideoMetadata } from "./services/video-manager";
+import { downloadTwitchVideo } from "./services/download.js";
+import { generateTranscript } from "./transcript/transcript.js";
+import { getTranscriptByVideoId, initDb } from "./db/index.js";
+import { deleteVideoById, getVideoById } from "./db/helpers.js";
+import dotenv from "dotenv";
+import { fetchVideoIDs } from "./services/scraper.js";
+import { ensureDirExists, filterVideoIDs, getDataPath } from "./shared/utils.js";
+import path from "path";
+import fs from "fs";
+import { saveVideoMetadata } from "./services/video-manager.js";
 
-const env = config();
+dotenv.config();
+const env = process.env;
 const CHANNEL_NAME = env.CHANNEL_NAME;
 const FILTER_CRITERIA = env.FILTER_CRITERIA;
 const SPECIFIC_VODS = env.SPECIFIC_VODS;
@@ -18,12 +20,11 @@ async function cleanTempDirectory() {
   const tempDir = getDataPath("temp");
   console.log(`🧹 Cleaning temporary directory: ${tempDir}`);
   try {
-    for await (const dirEntry of Deno.readDir(tempDir)) {
-      if (dirEntry.isFile || dirEntry.isDirectory) {
-        const fullPath = join(tempDir, dirEntry.name);
-        await Deno.remove(fullPath, { recursive: true });
-        console.log(`🗑️ Removed: ${fullPath}`);
-      }
+    const entries = await fs.promises.readdir(tempDir, { withFileTypes: true });
+    for (const dirEntry of entries) {
+      const fullPath = path.join(tempDir, dirEntry.name);
+      await fs.promises.rm(fullPath, { recursive: true, force: true });
+      console.log(`🗑️ Removed: ${fullPath}`);
     }
     console.log("✨ Temporary directory cleaned.");
   } catch (error) {
@@ -37,12 +38,13 @@ async function checkVideoExists(
   const videoDir = getDataPath("videos");
   try {
     const extensions = [".mp4", ".mkv", ".webm"];
-    for await (const entry of Deno.readDir(videoDir)) {
-      if (!entry.isFile) continue;
+    const files = await fs.promises.readdir(videoDir, { withFileTypes: true });
+    for (const entry of files) {
+      if (!entry.isFile()) continue;
       for (const ext of extensions) {
         const suffix = `_vod_${videoID}${ext}`;
         if (entry.name.endsWith(suffix)) {
-          return { exists: true, filePath: join(videoDir, entry.name) };
+          return { exists: true, filePath: path.join(videoDir, entry.name) };
         }
       }
     }
