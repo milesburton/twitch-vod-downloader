@@ -77,8 +77,9 @@ export async function execWithOutput(command: string[]): Promise<string> {
     stderr: "pipe",
   });
   let output = "";
+  const decoder = new TextDecoder();
   for await (const chunk of proc.stdout) {
-    output += chunk.toString();
+    output += decoder.decode(chunk);
   }
   return output.trim();
 }
