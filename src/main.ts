@@ -1,7 +1,11 @@
 import { downloadTwitchVideo } from "./services/download.js";
 import { generateTranscript } from "./transcript/transcript.js";
-import { getTranscriptByVideoId, initDb } from "./db/index.js";
-import { deleteVideoById, getVideoById } from "./db/helpers.js";
+import {
+  getTranscriptByVideoIdAsync,
+  getVideoByIdAsync,
+  deleteVideoByIdAsync,
+  initDb
+} from "./db/index.js";
 import dotenv from "dotenv";
 import { fetchVideoIDs } from "./services/scraper.js";
 import { ensureDirExists, filterVideoIDs, getDataPath } from "./shared/utils.js";
@@ -84,7 +88,7 @@ async function processVideos() {
     console.log(`📹 Processing ${filteredVideoIDs.length} videos`);
 
     for (const videoID of filteredVideoIDs) {
-      const video = await getVideoById(db, videoID);
+      const video = await getVideoByIdAsync(db, videoID);
       const { exists: videoFileExists, filePath } = await checkVideoExists(
         videoID,
       );
@@ -104,7 +108,7 @@ async function processVideos() {
             });
             console.log(`✅ Successfully saved metadata for ${videoID}`);
 
-            currentVideo = await getVideoById(db, videoID);
+            currentVideo = await getVideoByIdAsync(db, videoID);
           } catch (error) {
             console.error(`❌ Error saving metadata: ${error}`);
             continue;
@@ -114,7 +118,7 @@ async function processVideos() {
         if (
           ENABLE_TRANSCRIPTS &&
           currentVideo &&
-          !(await getTranscriptByVideoId(db, videoID))
+          !(await getTranscriptByVideoIdAsync(db, videoID))
         ) {
           console.log(`🎙️ Generating transcript for video: ${videoID}`);
           try {
@@ -124,7 +128,7 @@ async function processVideos() {
               `❌ Error generating transcript for ${videoID}:`,
               error,
             );
-            await deleteVideoById(db, videoID);
+            await deleteVideoByIdAsync(db, videoID);
           }
         }
         continue;
@@ -149,7 +153,7 @@ async function processVideos() {
         } else {
           console.warn(`⚠️ Could not download video: ${videoID}`);
           try {
-            await deleteVideoById(db, videoID);
+            await deleteVideoByIdAsync(db, videoID);
             console.log(
               `🗑️ Deleted video metadata for failed download: ${videoID}`,
             );
@@ -160,7 +164,7 @@ async function processVideos() {
       } catch (error) {
         console.error(`❌ Error processing video ${videoID}:`, error);
         try {
-          await deleteVideoById(db, videoID);
+          await deleteVideoByIdAsync(db, videoID);
           console.log(`🗑️ Deleted video metadata after error: ${videoID}`);
         } catch (dbError) {
           console.error(`Error deleting the video metadata ${dbError}`);
@@ -176,8 +180,7 @@ async function processVideos() {
 }
 
 async function main() {
-  console.log("🎬 Starting Twitch VOD Downloader");
-
+  const args = process.argv.slice(2);
   await ensureDirExists(getDataPath(""));
   await ensureDirExists(getDataPath("audio"));
   await ensureDirExists(getDataPath("transcripts"));
@@ -185,6 +188,40 @@ async function main() {
   await ensureDirExists(getDataPath("videos"));
   await ensureDirExists(getDataPath("temp"));
 
+  if (args[0] === "list") {
+    // List all downloaded videos
+    const videoDir = getDataPath("videos");
+    try {
+      const files = await fs.promises.readdir(videoDir);
+      if (files.length === 0) {
+        console.log("No videos found.");
+      } else {
+        console.log("Downloaded videos:");
+        files.forEach(f => console.log("- ", f));
+      }
+    } catch (err) {
+      console.error("Error reading videos directory:", err);
+    }
+    return;
+  }
+  if (args[0] === "list-transcripts") {
+    // List all transcript files
+    const transcriptDir = getDataPath("transcripts");
+    try {
+      const files = await fs.promises.readdir(transcriptDir);
+      if (files.length === 0) {
+        console.log("No transcripts found.");
+      } else {
+        console.log("Transcript files:");
+        files.forEach(f => console.log("- ", f));
+      }
+    } catch (err) {
+      console.error("Error reading transcripts directory:", err);
+    }
+    return;
+  }
+
+  console.log("🎬 Starting Twitch VOD Downloader");
   await cleanTempDirectory();
   await processVideos();
 }

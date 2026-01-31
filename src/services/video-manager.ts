@@ -1,4 +1,4 @@
-import { Database } from "https://deno.land/x/sqlite3@0.12.0/mod.ts";
+import Database from "sqlite3";
 import { Video } from "../shared/types";
 import { insertVideo } from "../db/helpers";
 

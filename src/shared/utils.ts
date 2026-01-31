@@ -1,12 +1,13 @@
 
 import path from "path";
 import fs from "fs";
+import { fileURLToPath } from "url";
 
-const __filename = typeof __filename !== 'undefined' ? __filename : (new URL('', import.meta.url).pathname);
-const __dirname = typeof __dirname !== 'undefined' ? __dirname : path.dirname(__filename);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export function getProjectRoot(): string {
-  return path.dirname(__dirname);
+  return path.resolve(__dirname, "../..");
 }
 
 export function getDataPath(subdir: string): string {
@@ -76,8 +77,9 @@ export async function execWithOutput(command: string[]): Promise<string> {
     stderr: "pipe",
   });
   let output = "";
+  const decoder = new TextDecoder();
   for await (const chunk of proc.stdout) {
-    output += chunk.toString();
+    output += decoder.decode(chunk);
   }
   return output.trim();
 }
@@ -95,7 +97,7 @@ export function filterVideoIDs(
     console.log("ℹ️ Empty video ID array provided");
     return [];
   }
-  if (specificVODs !== undefined) {
+  if (specificVODs !== undefined && specificVODs !== "") {
     console.log("🎯 Using specific VODs filter");
     const vodList = Array.isArray(specificVODs) ? specificVODs : specificVODs
       .split(",")

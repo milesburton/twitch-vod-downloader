@@ -1,0 +1,9 @@
+{
+  "extends": ["biome:recommended"],
+  "linter": {
+    "enabled": true
+  },
+  "formatter": {
+    "enabled": true
+  }
+}

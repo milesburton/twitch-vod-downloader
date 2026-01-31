@@ -13,15 +13,14 @@ export function filterVideoIDs(
   if (!Array.isArray(videoIDs)) return [];
   if (videoIDs.length === 0) return [];
 
-  if (specificVODs !== undefined) {
+  if (specificVODs !== undefined && specificVODs !== "") {
     const vodList = Array.isArray(specificVODs) ? specificVODs : specificVODs
       .split(",")
       .map((id) => id.trim())
       .filter(Boolean);
-    if (vodList.length) {
+    if (vodList.length > 0) {
       return vodList;
     }
-    return [];
   }
 
   if (!criteria?.trim()) {

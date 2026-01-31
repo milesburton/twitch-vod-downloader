@@ -1,5 +1,5 @@
-import * as tf from "https://esm.sh/@tensorflow/tfjs@4.22.0";
-import * as use from "https://esm.sh/@tensorflow-models/universal-sentence-encoder";
+import * as tf from "@tensorflow/tfjs-node";
+import * as use from "@tensorflow-models/universal-sentence-encoder";
 
 let modelInitialized = false;
 type UseModel = { embed: (sentences: string[]) => Promise<unknown> };
