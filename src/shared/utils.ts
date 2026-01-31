@@ -96,7 +96,7 @@ export function filterVideoIDs(
     console.log("ℹ️ Empty video ID array provided");
     return [];
   }
-  if (specificVODs !== undefined) {
+  if (specificVODs !== undefined && specificVODs !== "") {
     console.log("🎯 Using specific VODs filter");
     const vodList = Array.isArray(specificVODs) ? specificVODs : specificVODs
       .split(",")
