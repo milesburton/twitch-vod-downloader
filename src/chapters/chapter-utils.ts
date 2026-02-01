@@ -43,6 +43,7 @@ export function generateChapterTitle(content: string, summary: string): string {
         "to",
         "by",
         "in",
+        "over",
       ];
       if (lowerCaseWords.includes(word.toLowerCase())) {
         return word.toLowerCase();
@@ -62,7 +63,7 @@ export function generateChapterTitle(content: string, summary: string): string {
 function basicSummarize(content: string, numSentences = 3): string {
   const sentences = content
     .split(/(?<=[.!?])\s+/)
-    .filter((s) => s.trim().length > 0);
+    .filter((s) => s.trim().length > 1 && /[a-zA-Z]/.test(s));
   const selectedSentences = sentences.slice(0, numSentences);
   return selectedSentences.map((s) => `🔹 ${s.trim()}`).join("\n");
 }
@@ -83,7 +84,7 @@ export async function generateBulletPointSummary(
     }
     const sentences = content
       .split(/(?<=[.!?])\s+/)
-      .filter((s) => s.trim().length > 0);
+      .filter((s) => s.trim().length > 1 && /[a-zA-Z]/.test(s));
     if (sentences.length <= numPoints) {
       return sentences.map((s) => `🔹 ${s.trim()}`).join("\n");
     }

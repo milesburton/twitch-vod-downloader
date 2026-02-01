@@ -1,4 +1,4 @@
-{
+ {
   "name": "Twitch VOD Downloader",
   "build": {
     "dockerfile": "Dockerfile",
@@ -53,12 +53,13 @@
   },
   "remoteUser": "bun",
   "mounts": [
-    {
-      "source": "${localEnv:HOME}/.ssh",
-      "target": "/home/bun/.ssh",
-      "type": "bind",
-      "options": ["readonly"]
-    },
+    // Commented out - uncomment and ensure C:\Users\miles\.ssh exists if needed
+    // {
+    //   "source": "${localEnv:USERPROFILE}/.ssh",
+    //   "target": "/home/bun/.ssh",
+    //   "type": "bind",
+    //   "options": ["readonly"]
+    // },
     {
       "source": "fish_history",
       "target": "/home/bun/.local/share/fish",

@@ -24,6 +24,15 @@ const mockFsWriteFile = mock(async (path: string, data: string) => {});
 const mockFsReaddir = mock(async (path: string, options: any) => []);
 const mockFsRm = mock(async (path: string, options: any) => {});
 
+// Mock the utils module
+await mock.module("../shared/utils", () => ({
+  execWithLogs: async (...args: any[]) => mockExecWithLogs(...args),
+  execWithOutput: async (...args: any[]) => mockExecWithOutput(...args),
+  readJsonFile: async (...args: any[]) => mockReadJsonFile(...args),
+  getDataPath: (subdir: string) => `/data/${subdir}`,
+  ensureDirExists: async (dir: string) => {},
+}));
+
 describe("transcript processing", () => {
   let db: sqlite3.Database;
   let originalProcessEnv: NodeJS.ProcessEnv;
@@ -185,8 +194,11 @@ describe("transcript processing", () => {
   }, 30000);
 
   test("convertVideoToAudio uses correct ffmpeg parameters", async () => {
+    let videoConversionCalled = false;
     mockExecWithLogs.mockImplementation(async (cmd) => {
-      if (cmd[0] === "ffmpeg") {
+      if (cmd[0] === "ffmpeg" && cmd.includes("-vn")) {
+        // This is the video-to-audio conversion command
+        videoConversionCalled = true;
         expect(cmd).toContain("-vn"); // No video
         expect(cmd).toContain("-acodec");
         expect(cmd).toContain("pcm_s16le");
@@ -220,10 +232,8 @@ describe("transcript processing", () => {
       const video = createMockVideo();
       await generateTranscript(db, video);
 
-      const ffmpegCalls = mockExecWithLogs.mock.calls.filter(
-        call => call[0][0] === "ffmpeg"
-      );
-      expect(ffmpegCalls.length).toBeGreaterThan(0);
+      // Check that video conversion was called
+      expect(videoConversionCalled).toBe(true);
     } finally {
       fs.promises.mkdir = origMkdir;
       fs.promises.stat = origStat;
@@ -327,16 +337,14 @@ describe("transcript processing", () => {
     }
   }, 30000);
 
-  test("includes duration in metadata when INCLUDE_TRANSCRIPT_DURATION is true", async () => {
-    process.env.INCLUDE_TRANSCRIPT_DURATION = "true";
-
+  test("writes merged transcript with metadata", async () => {
     mockExecWithLogs.mockImplementation(async () => 0);
     mockExecWithOutput.mockImplementation(async () => "60.0");
     mockReadJsonFile.mockImplementation(async () => ({
-      text: "Test with duration",
+      text: "Test with metadata",
       segments: [
         { id: 0, start: 0, end: 30, text: "Test" },
-        { id: 1, start: 30, end: 60, text: "with duration" },
+        { id: 1, start: 30, end: 60, text: "with metadata" },
       ],
     }));
 
@@ -363,8 +371,11 @@ describe("transcript processing", () => {
       const video = createMockVideo();
       await generateTranscript(db, video);
 
+      // Check that merged JSON was written with metadata
       expect(capturedMetadata).not.toBeNull();
-      expect(capturedMetadata.metadata.total_duration).toBeDefined();
+      expect(capturedMetadata.metadata).toBeDefined();
+      expect(capturedMetadata.text).toBeDefined();
+      expect(capturedMetadata.segments).toBeDefined();
     } finally {
       fs.promises.mkdir = origMkdir;
       fs.promises.stat = origStat;

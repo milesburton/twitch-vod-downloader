@@ -7,10 +7,16 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export function getProjectRoot(): string {
+  if (process.env.TEST_PROJECT_ROOT) {
+    return process.env.TEST_PROJECT_ROOT;
+  }
   return path.resolve(__dirname, "../..");
 }
 
 export function getDataPath(subdir: string): string {
+  if (process.env.DATA_ROOT) {
+    return path.join(process.env.DATA_ROOT, subdir);
+  }
   return path.join(getProjectRoot(), "data", subdir);
 }
 
@@ -25,13 +31,15 @@ export async function ensureDirExists(dirPath: string): Promise<void> {
 }
 
 export async function getTempFilePath(
-  prefix = "temp",
-  suffix = "",
+  prefix?: string,
+  suffix?: string,
 ): Promise<string> {
+  const safePrefix = prefix || "temp";
+  const safeSuffix = suffix || "";
   const tempDir = getDataPath("temp");
   await ensureDirExists(tempDir);
   const uniqueId = Date.now().toString(36) + Math.random().toString(36).substring(2);
-  const tempFileName = `${prefix}_${uniqueId}${suffix}`;
+  const tempFileName = `${safePrefix}_${uniqueId}${safeSuffix}`;
   return path.join(tempDir, tempFileName);
 }
 

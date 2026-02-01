@@ -8,7 +8,7 @@ describe("generateChapterTitle", () => {
 
     const title = generateChapterTitle(content, summary);
 
-    expect(title).toBe("This Is The First Sentence.");
+    expect(title).toBe("This Is the First Sentence.");
   });
 
   test("capitalizes words correctly", () => {
@@ -42,9 +42,11 @@ describe("generateChapterTitle", () => {
     const title = generateChapterTitle(content, summary);
 
     if (title.endsWith("...")) {
-      // Should not end with partial word before ellipsis
+      // Should end with complete word before ellipsis, not mid-word
       const beforeEllipsis = title.slice(0, -3).trim();
-      expect(beforeEllipsis).not.toMatch(/\S$/); // Last char should be space or complete word
+      expect(beforeEllipsis).toMatch(/\S$/); // Last char should be a word character (complete word)
+      // Verify we didn't truncate mid-word by checking there's a space before the last word
+      expect(beforeEllipsis).toMatch(/\s\S+$/); // Should have space then word at end
     }
   });
 

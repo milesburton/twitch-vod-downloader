@@ -112,7 +112,7 @@ describe("downloadTwitchVideo", () => {
     expect(result).not.toBeNull();
     expect(result?.id).toBe("87654321");
     expect(result?.file_path).toContain("_vod_87654321.mp4");
-    expect(result?.file_path).toMatch(/^\d{4}-\d{2}-\d{2}_vod_87654321\.mp4$/);
+    expect(path.basename(result?.file_path || "")).toMatch(/^\d{4}-\d{2}-\d{2}_vod_87654321\.mp4$/);
   });
 
   test("returns null when video ID cannot be extracted", async () => {
