@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bun --version:*)",
+      "Bash(bun run:*)",
+      "Bash(echo:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(FILTER_CRITERIA=latest bun run:*)",
+      "Bash(bun test:*)",
+      "Bash(git push:*)"
+    ]
+  }
+}
