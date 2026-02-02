@@ -1,0 +1,615 @@
+{
+  "coverageGaps": [
+    {
+      "file": "src/chapters/chapter-utils.ts",
+      "coverage": {
+        "function": "83%",
+        "line": "73%"
+      },
+      "uncoveredLines": {
+        "16-20": {
+          "lines": "16-20",
+          "description": "Lines 16-20 are in initializeModel() error handling block",
+          "code": "console.warn(\"⚠️ Failed to initialize TensorFlow model, falling back to basic summarization\", error);\nmodelInitialized = false;",
+          "requiredTests": [
+            "Test TensorFlow model initialization failure with try-catch error handling",
+            "Test fallback behavior when model.load() throws an error",
+            "Test that modelInitialized flag is set to false on error"
+          ]
+        },
+        "63-67": {
+          "lines": "63-67",
+          "description": "Lines 63-67 are in basicSummarize() function which is a fallback path",
+          "code": "function basicSummarize(content: string, numSentences = 3): string {",
+          "requiredTests": [
+            "Test basicSummarize() directly with various content",
+            "Test basicSummarize() filtering of sentences with less than 1 character",
+            "Test basicSummarize() filtering of sentences without alphabetic characters"
+          ]
+        },
+        "83": {
+          "lines": "83",
+          "description": "Line 83 is in generateBulletPointSummary error handling",
+          "code": "catch (error) {",
+          "requiredTests": [
+            "Test generateBulletPointSummary when useModel.embed() throws",
+            "Test generateBulletPointSummary falls back to basicSummarize on error",
+            "Test error warning is logged when TensorFlow processing fails"
+          ]
+        },
+        "125-130": {
+          "lines": "125-130",
+          "description": "Lines 125-130 are in cosineSimilarity helper function",
+          "code": "function cosineSimilarity(a: number[], b: number[]): number { ... }",
+          "requiredTests": [
+            "Test cosineSimilarity with identical vectors (should be ~1)",
+            "Test cosineSimilarity with orthogonal vectors (should be ~0)",
+            "Test cosineSimilarity with opposite vectors (should be ~-1)"
+          ]
+        },
+        "152-175": {
+          "lines": "152-175",
+          "description": "Lines 152-175 are in segmentTranscript initialization and setup",
+          "code": "Lines that prepare directories and set up transcript processing",
+          "requiredTests": [
+            "Test segmentTranscript with various sentence lengths",
+            "Test that chunk size of 5 is respected",
+            "Test segmentTranscript with single sentence",
+            "Test segmentTranscript with fewer sentences than chunk size",
+            "Test time calculation logic in chapters"
+          ]
+        }
+      }
+    },
+    {
+      "file": "src/shared/utils.ts",
+      "coverage": {
+        "function": "77%",
+        "line": "68%"
+      },
+      "uncoveredLines": {
+        "11": {
+          "lines": "11",
+          "description": "Line 11 is process.env.TEST_PROJECT_ROOT check in getProjectRoot()",
+          "code": "Check for TEST_PROJECT_ROOT environment variable",
+          "requiredTests": [
+            "Test getProjectRoot when TEST_PROJECT_ROOT env var is set",
+            "Test getProjectRoot respects the TEST_PROJECT_ROOT override"
+          ]
+        },
+        "18": {
+          "lines": "18",
+          "description": "Line 18 is process.env.DATA_ROOT check in getDataPath()",
+          "code": "Check for DATA_ROOT environment variable",
+          "requiredTests": [
+            "Test getDataPath when DATA_ROOT env var is set",
+            "Test getDataPath respects the DATA_ROOT override"
+          ]
+        },
+        "26-28": {
+          "lines": "26-28",
+          "description": "Lines 26-28 are error handling in ensureDirExists()",
+          "code": "if (error.code !== \"EEXIST\") { throw error; }",
+          "requiredTests": [
+            "Test ensureDirExists throws on permission denied error",
+            "Test ensureDirExists silently handles EEXIST error",
+            "Test ensureDirExists with other filesystem errors"
+          ]
+        },
+        "33-42": {
+          "lines": "33-42",
+          "description": "Lines 33-42 are getTempFilePath prefix/suffix handling",
+          "code": "const safePrefix = prefix || \"temp\";\nconst safeSuffix = suffix || \"\";",
+          "requiredTests": [
+            "Test getTempFilePath with both prefix and suffix",
+            "Test getTempFilePath with only prefix",
+            "Test getTempFilePath with only suffix",
+            "Test getTempFilePath with neither prefix nor suffix"
+          ]
+        },
+        "46-49": {
+          "lines": "46-49",
+          "description": "Lines 46-49 are unique ID generation in getTempFilePath()",
+          "code": "const uniqueId = Date.now().toString(36) + Math.random()...",
+          "requiredTests": [
+            "Test getTempFilePath generates unique filenames on successive calls",
+            "Test getTempFilePath includes both timestamp and random component"
+          ]
+        },
+        "62-78": {
+          "lines": "62-78",
+          "description": "Lines 62-78 are execWithLogs and execWithOutput implementations",
+          "code": "Bun.spawn implementation with stream piping",
+          "requiredTests": [
+            "Test execWithLogs pipes stdout correctly",
+            "Test execWithLogs pipes stderr correctly",
+            "Test execWithOutput captures and returns command output",
+            "Test execWithOutput handles commands with no output",
+            "Test execWithOutput trims output correctly"
+          ]
+        }
+      }
+    },
+    {
+      "file": "src/testing/test-helpers.ts",
+      "coverage": {
+        "function": "77%",
+        "line": "60%"
+      },
+      "uncoveredLines": {
+        "101-120": {
+          "lines": "101-120",
+          "description": "Lines 101-120 are mockFetch implementation details",
+          "code": "Return mock fetch response objects with ok, status, json(), text()",
+          "requiredTests": [
+            "Test mockFetch returns configured response for matching URL",
+            "Test mockFetch returns 404 for unmatched URLs",
+            "Test mockFetch response.json() returns correct data",
+            "Test mockFetch response.text() returns JSON stringified data",
+            "Test mockFetch handles both string and Request URLs"
+          ]
+        },
+        "138-148": {
+          "lines": "138-148",
+          "description": "Lines 138-148 are createMockSpawn implementation",
+          "code": "Default return for unmatched spawn commands",
+          "requiredTests": [
+            "Test createMockSpawn returns configured result for matching command",
+            "Test createMockSpawn returns default success (exitCode 0) for unmatched",
+            "Test createMockSpawn uses command name (first element) as key"
+          ]
+        },
+        "177": {
+          "lines": "177",
+          "description": "Line 177 is cleanupTempTestDir error handling",
+          "code": "console.warn(`Failed to cleanup test directory ${dirPath}:`, error);",
+          "requiredTests": [
+            "Test cleanupTempTestDir logs warning on fs.rm error",
+            "Test cleanupTempTestDir continues despite cleanup failure"
+          ]
+        },
+        "205": {
+          "lines": "205",
+          "description": "Line 205 is assertFileNotExists error checking",
+          "code": "if (error.code !== \"ENOENT\") { throw error; }",
+          "requiredTests": [
+            "Test assertFileNotExists handles ENOENT correctly",
+            "Test assertFileNotExists re-throws non-ENOENT errors"
+          ]
+        },
+        "219": {
+          "lines": "219",
+          "description": "Line 219 is readTestFile implementation",
+          "code": "return await fs.readFile(filePath, \"utf-8\");",
+          "requiredTests": [
+            "Test readTestFile returns file contents as string",
+            "Test readTestFile with various file encodings"
+          ]
+        },
+        "227": {
+          "lines": "227",
+          "description": "Line 227 is promisifyDbOperation error handling",
+          "code": "if (err) reject(err);",
+          "requiredTests": [
+            "Test promisifyDbOperation rejects on error",
+            "Test promisifyDbOperation resolves with result on success"
+          ]
+        },
+        "238-245": {
+          "lines": "238-245",
+          "description": "Lines 238-245 are promisifyDbRun error handling",
+          "code": "Database run operation with callback error handling",
+          "requiredTests": [
+            "Test promisifyDbRun rejects on error",
+            "Test promisifyDbRun resolves with void on success"
+          ]
+        },
+        "252-259": {
+          "lines": "252-259",
+          "description": "Lines 252-259 are end of file - helper comment sections",
+          "code": "Module comment sections and organization",
+          "requiredTests": [
+            "All lines are comments/section headers, not executable code"
+          ]
+        }
+      }
+    },
+    {
+      "file": "src/transcript/transcript.ts",
+      "coverage": {
+        "function": "85%",
+        "line": "86%"
+      },
+      "uncoveredLines": {
+        "32-35": {
+          "lines": "32-35",
+          "description": "Lines 32-35 are in withRetry maxAttempts exceeded error",
+          "code": "throw new Error(`Failed after ${config.maxAttempts} attempts`);",
+          "requiredTests": [
+            "Test withRetry throws after maxAttempts is exceeded",
+            "Test withRetry error message includes attempt count"
+          ]
+        },
+        "37-40": {
+          "lines": "37-40",
+          "description": "Lines 37-40 are in withRetry retry delay calculation",
+          "code": "const delay = Math.min(...baseDelay * Math.pow(2, attempt - 1), maxDelay);",
+          "requiredTests": [
+            "Test withRetry exponential backoff delay calculation",
+            "Test withRetry caps delay at maxDelay",
+            "Test withRetry increases delay with each attempt"
+          ]
+        },
+        "42-46": {
+          "lines": "42-46",
+          "description": "Lines 42-46 are in withRetry warning log",
+          "code": "console.warn warning message for retry",
+          "requiredTests": [
+            "Test withRetry logs warning with correct attempt number",
+            "Test withRetry logs calculated delay value"
+          ]
+        },
+        "48": {
+          "lines": "48",
+          "description": "Line 48 is error logging in withRetry",
+          "code": "console.error(error);",
+          "requiredTests": ["Test withRetry logs error details on retry"]
+        },
+        "50-51": {
+          "lines": "50-51",
+          "description": "Lines 50-51 are in withRetry delay promise",
+          "code": "await new Promise((resolve) => setTimeout(resolve, delay));",
+          "requiredTests": [
+            "Test withRetry waits correct amount of time before retry"
+          ]
+        },
+        "162": {
+          "lines": "162",
+          "description": "Line 162 is in mergeTranscriptions segment filtering",
+          "code": "const isInOverlap = segment.start < overlap && segment.end > 0;",
+          "requiredTests": [
+            "Test mergeTranscriptions filters overlapping segments correctly",
+            "Test mergeTranscriptions identifies segments in overlap region"
+          ]
+        },
+        "182-183": {
+          "lines": "182-183",
+          "description": "Lines 182-183 are in mergeTranscriptions similarity check",
+          "code": "return !isTextSimilar(segment.text, prevText);",
+          "requiredTests": [
+            "Test mergeTranscriptions filters similar text in overlaps",
+            "Test mergeTranscriptions keeps dissimilar text in overlaps"
+          ]
+        },
+        "217": {
+          "lines": "217",
+          "description": "Line 217 is in mergeTranscriptions text cleaning",
+          "code": ".replace(/\\s+/g, \" \")",
+          "requiredTests": [
+            "Test mergeTranscriptions normalizes multiple spaces",
+            "Test mergeTranscriptions preserves paragraph structure"
+          ]
+        },
+        "219-220": {
+          "lines": "219-220",
+          "description": "Lines 219-220 are in mergeTranscriptions metadata assembly",
+          "code": "const baseMetadata = { timestamp, num_segments, video_id }",
+          "requiredTests": [
+            "Test mergeTranscriptions includes required metadata fields",
+            "Test mergeTranscriptions sets correct timestamp"
+          ]
+        },
+        "282-283": {
+          "lines": "282-283",
+          "description": "Lines 282-283 are CUDA detection logic",
+          "code": "console.log(\"✅ CUDA GPU detected\");",
+          "requiredTests": [
+            "Test checkCuda returns true when GPU is available",
+            "Test checkCuda returns false when USE_GPU is disabled"
+          ]
+        },
+        "312": {
+          "lines": "312",
+          "description": "Line 312 is audio file size validation",
+          "code": "if (fileInfo.size === 0) { throw new Error(...) }",
+          "requiredTests": [
+            "Test convertVideoToAudio validates audio file is not empty",
+            "Test convertVideoToAudio throws on empty file"
+          ]
+        },
+        "318-320": {
+          "lines": "318-320",
+          "description": "Lines 318-320 are audio duration calculation logging",
+          "code": "console.log(`Total audio duration: ${duration}s`);",
+          "requiredTests": [
+            "Test splitAudioIntoChunks logs audio duration",
+            "Test splitAudioIntoChunks calculates expected chunks correctly"
+          ]
+        },
+        "324-334": {
+          "lines": "324-334",
+          "description": "Lines 324-334 are chunk file creation loop",
+          "code": "for loop creating individual audio chunks",
+          "requiredTests": [
+            "Test splitAudioIntoChunks creates correct number of chunk files",
+            "Test splitAudioIntoChunks respects chunk duration parameter",
+            "Test splitAudioIntoChunks handles overlap correctly",
+            "Test splitAudioIntoChunks stops at audio end"
+          ]
+        },
+        "336": {
+          "lines": "336",
+          "description": "Line 336 is chunk file size logging",
+          "code": "console.log(`✓ Chunk ${index} created successfully: ${chunkStats.size} bytes`);",
+          "requiredTests": [
+            "Test splitAudioIntoChunks logs chunk creation success with size"
+          ]
+        },
+        "398": {
+          "lines": "398",
+          "description": "Line 398 is in transcribeChunk configuration logging",
+          "code": "Configuration logging for transcribe operation",
+          "requiredTests": ["Test transcribeChunk logs configuration details"]
+        },
+        "463-477": {
+          "lines": "463-477",
+          "description": "Lines 463-477 are in getAudioDuration error handling",
+          "code": "Error logging with file stats fallback",
+          "requiredTests": [
+            "Test getAudioDuration logs file stats on parse error",
+            "Test getAudioDuration handles missing audio file gracefully",
+            "Test getAudioDuration throws on corrupted/invalid audio"
+          ]
+        },
+        "491": {
+          "lines": "491",
+          "description": "Line 491 is in mergeTranscriptions duration metadata",
+          "code": "if (INCLUDE_TRANSCRIPT_DURATION) { baseMetadata.total_duration = ... }",
+          "requiredTests": [
+            "Test mergeTranscriptions includes duration when flag is set",
+            "Test mergeTranscriptions omits duration when flag is unset"
+          ]
+        },
+        "504": {
+          "lines": "504",
+          "description": "Line 504 is in mergeTranscriptions JSON file save",
+          "code": "console.log(`✓ Merged transcript JSON saved to: ${mergedJsonPath}`);",
+          "requiredTests": [
+            "Test mergeTranscriptions saves merged JSON to correct path",
+            "Test mergeTranscriptions saves proper JSON format"
+          ]
+        },
+        "511-513": {
+          "lines": "511-513",
+          "description": "Lines 511-513 are in cleanupFiles loop",
+          "code": "File deletion with warning on failure",
+          "requiredTests": [
+            "Test cleanupFiles removes temporary audio files",
+            "Test cleanupFiles handles permission/access errors gracefully"
+          ]
+        }
+      }
+    }
+  ],
+  "unnecessaryComments": [
+    {
+      "file": "src/testing/test-helpers.ts",
+      "lineNumber": 6,
+      "comment": "// =============================================================================",
+      "reason": "Decorative separator line - not informative, purely visual organization"
+    },
+    {
+      "file": "src/testing/test-helpers.ts",
+      "lineNumber": 7,
+      "comment": "// Mock Database Helpers",
+      "reason": "Section header comment - excessive when function names are already clear (createMockDatabase, closeMockDatabase)"
+    },
+    {
+      "file": "src/testing/test-helpers.ts",
+      "lineNumber": 8,
+      "comment": "// =============================================================================",
+      "reason": "Decorative separator line - not informative, purely visual organization"
+    },
+    {
+      "file": "src/testing/test-helpers.ts",
+      "lineNumber": 16,
+      "comment": "// Create tables synchronously for testing",
+      "reason": "Code is self-explanatory: db.serialize() and db.run() already indicate synchronous table creation"
+    },
+    {
+      "file": "src/testing/test-helpers.ts",
+      "lineNumber": 53,
+      "comment": "// =============================================================================",
+      "reason": "Decorative separator line - not informative, purely visual organization"
+    },
+    {
+      "file": "src/testing/test-helpers.ts",
+      "lineNumber": 54,
+      "comment": "// Factory Functions for Test Data",
+      "reason": "Section header comment - excessive when function names are already clear (createMockVideo, createMockTranscript)"
+    },
+    {
+      "file": "src/testing/test-helpers.ts",
+      "lineNumber": 55,
+      "comment": "// =============================================================================",
+      "reason": "Decorative separator line - not informative, purely visual organization"
+    },
+    {
+      "file": "src/testing/test-helpers.ts",
+      "lineNumber": 87,
+      "comment": "// =============================================================================",
+      "reason": "Decorative separator line - not informative, purely visual organization"
+    },
+    {
+      "file": "src/testing/test-helpers.ts",
+      "lineNumber": 88,
+      "comment": "// Mock Fetch Helper",
+      "reason": "Section header comment - excessive when function names are already clear (mockFetch)"
+    },
+    {
+      "file": "src/testing/test-helpers.ts",
+      "lineNumber": 89,
+      "comment": "// =============================================================================",
+      "reason": "Decorative separator line - not informative, purely visual organization"
+    },
+    {
+      "file": "src/testing/test-helpers.ts",
+      "lineNumber": 115,
+      "comment": "// Default 404 response",
+      "reason": "Self-explanatory from context - function returns 404 for unmatched URLs, obvious from return statement"
+    },
+    {
+      "file": "src/testing/test-helpers.ts",
+      "lineNumber": 125,
+      "comment": "// =============================================================================",
+      "reason": "Decorative separator line - not informative, purely visual organization"
+    },
+    {
+      "file": "src/testing/test-helpers.ts",
+      "lineNumber": 126,
+      "comment": "// Mock Bun.spawn Helper",
+      "reason": "Section header comment - excessive when function name is already clear (createMockSpawn)"
+    },
+    {
+      "file": "src/testing/test-helpers.ts",
+      "lineNumber": 127,
+      "comment": "// =============================================================================",
+      "reason": "Decorative separator line - not informative, purely visual organization"
+    },
+    {
+      "file": "src/testing/test-helpers.ts",
+      "lineNumber": 146,
+      "comment": "// Default: return successful execution",
+      "reason": "Self-explanatory - default case returning exitCode 0 is obvious from context"
+    },
+    {
+      "file": "src/testing/test-helpers.ts",
+      "lineNumber": 153,
+      "comment": "// =============================================================================",
+      "reason": "Decorative separator line - not informative, purely visual organization"
+    },
+    {
+      "file": "src/testing/test-helpers.ts",
+      "lineNumber": 154,
+      "comment": "// Temporary Directory Helpers",
+      "reason": "Section header comment - excessive when function names are already clear (createTempTestDir, cleanupTempTestDir)"
+    },
+    {
+      "file": "src/testing/test-helpers.ts",
+      "lineNumber": 155,
+      "comment": "// =============================================================================",
+      "reason": "Decorative separator line - not informative, purely visual organization"
+    },
+    {
+      "file": "src/testing/test-helpers.ts",
+      "lineNumber": 195,
+      "comment": "// =============================================================================",
+      "reason": "Decorative separator line - not informative, purely visual organization"
+    },
+    {
+      "file": "src/testing/test-helpers.ts",
+      "lineNumber": 196,
+      "comment": "// Assertion Helpers",
+      "reason": "Section header comment - excessive when function names are already clear (assertFileExists, assertFileNotExists)"
+    },
+    {
+      "file": "src/chapters/chapter-utils.spec.ts",
+      "lineNumber": 20,
+      "comment": "// Articles and prepositions should be lowercase except at start",
+      "reason": "Already explained by test assertions - expect statements show what is being verified"
+    },
+    {
+      "file": "src/chapters/chapter-utils.spec.ts",
+      "lineNumber": 47,
+      "comment": "// Last char should be a word character (complete word)",
+      "reason": "Redundant - the regex /\\S$/ already clearly checks for non-whitespace character"
+    },
+    {
+      "file": "src/chapters/chapter-utils.spec.ts",
+      "lineNumber": 48,
+      "comment": "// Verify we didn't truncate mid-word by checking there's a space before the last word",
+      "reason": "Redundant with next line - the regex /\\s\\S+$/ already clearly shows space before word"
+    },
+    {
+      "file": "src/chapters/chapter-utils.spec.ts",
+      "lineNumber": 49,
+      "comment": "// Should have space then word at end",
+      "reason": "Redundant - the regex /\\s\\S+$/ already clearly expresses this requirement"
+    },
+    {
+      "file": "src/chapters/chapter-utils.spec.ts",
+      "lineNumber": 96,
+      "comment": "// \"The\" at start should be capitalized, \"and\" and \"the\" in middle should be lowercase",
+      "reason": "Test assertions already show this - expect statements verify both conditions"
+    },
+    {
+      "file": "src/chapters/chapter-utils.spec.ts",
+      "lineNumber": 176,
+      "comment": "// Should only have 2 valid sentences",
+      "reason": "Test description already explains this - comment is redundant with test case logic"
+    },
+    {
+      "file": "src/shared/utils.spec.ts",
+      "lineNumber": 243,
+      "comment": "// Returns a copy",
+      "reason": "Self-explanatory from assertions - expect(result).not.toBe(testVideoIDs) clearly shows copy verification"
+    },
+    {
+      "file": "src/transcript/transcript.spec.ts",
+      "lineNumber": 11,
+      "comment": "// Mock external dependencies",
+      "reason": "Self-explanatory - next lines all define mock functions, comment is redundant"
+    },
+    {
+      "file": "src/transcript/transcript.spec.ts",
+      "lineNumber": 27,
+      "comment": "// Mock the utils module",
+      "reason": "Self-explanatory - next line uses mock.module() which clearly mocks the utils module"
+    },
+    {
+      "file": "src/transcript/transcript.spec.ts",
+      "lineNumber": 44,
+      "comment": "// Reset mocks",
+      "reason": "Self-explanatory - following lines call .mockClear() on all mocks, action is obvious"
+    },
+    {
+      "file": "src/transcript/transcript.spec.ts",
+      "lineNumber": 54,
+      "comment": "// Set test environment variables",
+      "reason": "Self-explanatory - following lines set process.env properties, comment is redundant"
+    },
+    {
+      "file": "src/transcript/transcript.spec.ts",
+      "lineNumber": 69,
+      "comment": "// Mock successful execution",
+      "reason": "Self-explanatory - next line sets mockExecWithOutput to return 60.0, action is obvious"
+    },
+    {
+      "file": "src/transcript/transcript.spec.ts",
+      "lineNumber": 70,
+      "comment": "// 60 second audio",
+      "reason": "Immediately adjacent to code - \"60.0\" is clear from context, comment adds nothing"
+    },
+    {
+      "file": "src/transcript/transcript.spec.ts",
+      "lineNumber": 92,
+      "comment": "// Should create audio and transcripts directories",
+      "reason": "Test assertion already describes this - expect statements checking mkdirCalls make it clear"
+    }
+  ],
+  "summary": {
+    "totalFilesAnalyzed": 4,
+    "totalCoverageGaps": 4,
+    "totalUnnecessaryComments": 34,
+    "averageFunctionCoverage": "81%",
+    "averageLineCoverage": "77%",
+    "recommendedFixes": [
+      "Add integration tests for TensorFlow model initialization failures in chapter-utils.ts",
+      "Add env var override tests for getProjectRoot and getDataPath in utils.ts",
+      "Add comprehensive error path testing for transcript processing",
+      "Remove decorative separator comments (====) from test-helpers.ts",
+      "Remove section header comments where function names are self-documenting",
+      "Remove redundant inline comments that duplicate information from assertions or clear code patterns"
+    ]
+  }
+}

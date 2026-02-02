@@ -1,14 +1,15 @@
 import { test, expect, describe, beforeEach, afterEach, mock } from "bun:test";
 import path from "path";
 
-// Helper functions extracted from main.ts for testing
 function extractCleanTempDirectory(getDataPath: (dir: string) => string) {
   return async function cleanTempDirectory() {
     const tempDir = getDataPath("temp");
     console.log(`🧹 Cleaning temporary directory: ${tempDir}`);
     try {
       const fs = await import("fs");
-      const entries = await fs.promises.readdir(tempDir, { withFileTypes: true });
+      const entries = await fs.promises.readdir(tempDir, {
+        withFileTypes: true,
+      });
       for (const dirEntry of entries) {
         const fullPath = path.join(tempDir, dirEntry.name);
         await fs.promises.rm(fullPath, { recursive: true, force: true });
@@ -29,7 +30,9 @@ function extractCheckVideoExists(getDataPath: (dir: string) => string) {
     try {
       const fs = await import("fs");
       const extensions = [".mp4", ".mkv", ".webm"];
-      const files = await fs.promises.readdir(videoDir, { withFileTypes: true });
+      const files = await fs.promises.readdir(videoDir, {
+        withFileTypes: true,
+      });
       for (const entry of files) {
         if (!entry.isFile()) continue;
         for (const ext of extensions) {
@@ -95,7 +98,6 @@ describe("main application logic", () => {
       const cleanTempDirectory = extractCleanTempDirectory(mockGetDataPath);
       await cleanTempDirectory();
 
-      // Should not throw error
       expect(true).toBe(true);
     });
 
@@ -267,7 +269,9 @@ describe("main application logic", () => {
       const checkVideoExists = extractCheckVideoExists(mockGetDataPath);
       const result = await checkVideoExists("12345678");
 
-      expect(result.filePath).toBe("/mock/data/videos/2024-01-15_vod_12345678.mp4");
+      expect(result.filePath).toBe(
+        "/mock/data/videos/2024-01-15_vod_12345678.mp4",
+      );
     });
   });
 });

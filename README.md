@@ -3,7 +3,8 @@
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 ![Bun](https://img.shields.io/badge/Bun-1.2.0-blueviolet?logo=bun)
 ![Biome](https://img.shields.io/badge/Biome-2.3.13-green?logo=biome)
-![Test Coverage](https://img.shields.io/badge/coverage-75.91%25-green)
+![Test Coverage](https://img.shields.io/badge/coverage-90.08%25-brightgreen)
+![Tests](https://img.shields.io/badge/tests-155%20passing-brightgreen)
 
 **Archive Twitch VODs with AI-powered transcripts and chapters.**
 
@@ -160,7 +161,7 @@ bun test --coverage     # With coverage report
 bun test --watch        # Watch mode
 ```
 
-Current: **75.91% coverage** with 84+ tests
+**Status:** 155 tests passing ✅ | **Coverage:** 90.08% ✅
 
 ### Database Schema
 

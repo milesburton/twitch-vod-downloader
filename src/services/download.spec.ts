@@ -1,23 +1,20 @@
 import { test, expect, describe, beforeEach, afterEach, mock } from "bun:test";
-import { downloadTwitchVideo } from "./download";
+import type sqlite3 from "sqlite3";
+import path from "path";
 import {
   createMockDatabase,
   closeMockDatabase,
 } from "../testing/test-helpers";
 import { getVideoById } from "../db/helpers";
-import type sqlite3 from "sqlite3";
-import path from "path";
 
-// Mock modules
 const mockExecWithLogs = mock(async (command: string[]) => 0);
-const mockGetTempFilePath = mock(async (prefix: string, suffix: string) =>
-  `/tmp/test_${prefix}${suffix}`
+const mockGetTempFilePath = mock(
+  async (prefix: string, suffix: string) => `/tmp/test_${prefix}${suffix}`,
 );
 const mockRename = mock(async (oldPath: string, newPath: string) => {});
 const mockStat = mock(async (path: string) => ({ isFile: () => true }));
 const mockRm = mock(async (path: string, options: any) => {});
 
-// Mock imports
 await mock.module("../shared/utils", () => ({
   execWithLogs: mockExecWithLogs,
   getTempFilePath: mockGetTempFilePath,
@@ -30,6 +27,8 @@ await mock.module("../shared/utils", () => ({
   getDataPath: (subdir: string) => `/data/${subdir}`,
 }));
 
+const { downloadTwitchVideo } = await import("./download");
+
 describe("downloadTwitchVideo", () => {
   let db: sqlite3.Database;
   let originalFetch: typeof global.fetch;
@@ -41,7 +40,6 @@ describe("downloadTwitchVideo", () => {
     db = createMockDatabase();
     originalFetch = global.fetch;
 
-    // Mock fs operations
     const fs = require("fs");
     originalFsRename = fs.promises.rename;
     originalFsStat = fs.promises.stat;
@@ -51,7 +49,6 @@ describe("downloadTwitchVideo", () => {
     fs.promises.stat = mockStat;
     fs.promises.rm = mockRm;
 
-    // Reset mocks
     mockExecWithLogs.mockClear();
     mockGetTempFilePath.mockClear();
     mockRename.mockClear();
@@ -78,15 +75,15 @@ describe("downloadTwitchVideo", () => {
           JSON.stringify({
             data: [{ created_at: uploadDate }],
           }),
-          { status: 200, headers: { "Content-Type": "application/json" } }
+          { status: 200, headers: { "Content-Type": "application/json" } },
         );
       }
       return new Response(null, { status: 404 });
     };
 
     mockExecWithLogs.mockImplementation(async () => 0);
-    mockGetTempFilePath.mockImplementation(async (prefix, suffix) =>
-      `/tmp/${prefix}${suffix}`
+    mockGetTempFilePath.mockImplementation(
+      async (prefix, suffix) => `/tmp/${prefix}${suffix}`,
     );
 
     const result = await downloadTwitchVideo(db, videoUrl);
@@ -112,7 +109,9 @@ describe("downloadTwitchVideo", () => {
     expect(result).not.toBeNull();
     expect(result?.id).toBe("87654321");
     expect(result?.file_path).toContain("_vod_87654321.mp4");
-    expect(path.basename(result?.file_path || "")).toMatch(/^\d{4}-\d{2}-\d{2}_vod_87654321\.mp4$/);
+    expect(path.basename(result?.file_path || "")).toMatch(
+      /^\d{4}-\d{2}-\d{2}_vod_87654321\.mp4$/,
+    );
   });
 
   test("returns null when video ID cannot be extracted", async () => {
@@ -204,7 +203,7 @@ describe("downloadTwitchVideo", () => {
 
     await downloadTwitchVideo(db, videoUrl);
 
-    await new Promise(resolve => setTimeout(resolve, 200));
+    await new Promise((resolve) => setTimeout(resolve, 200));
 
     getVideoById(db, "12345678", (err, video) => {
       expect(err).toBeNull();
@@ -246,7 +245,7 @@ describe("downloadTwitchVideo", () => {
         capturedHeaders = new Headers(init?.headers);
         return new Response(
           JSON.stringify({ data: [{ created_at: "2024-01-15T10:30:00Z" }] }),
-          { status: 200, headers: { "Content-Type": "application/json" } }
+          { status: 200, headers: { "Content-Type": "application/json" } },
         );
       }
       return new Response(null, { status: 404 });
@@ -256,7 +255,9 @@ describe("downloadTwitchVideo", () => {
 
     await downloadTwitchVideo(db, videoUrl);
 
-    expect(capturedHeaders?.get("Client-Id")).toBe("kimne78kx3ncx6brgo4mv6wki5h1ko");
+    expect(capturedHeaders?.get("Client-Id")).toBe(
+      "kimne78kx3ncx6brgo4mv6wki5h1ko",
+    );
   });
 
   test("handles API response with no data", async () => {
@@ -264,10 +265,10 @@ describe("downloadTwitchVideo", () => {
 
     global.fetch = async (url: string | URL | Request) => {
       if (url.toString().includes("helix/videos")) {
-        return new Response(
-          JSON.stringify({ data: [] }),
-          { status: 200, headers: { "Content-Type": "application/json" } }
-        );
+        return new Response(JSON.stringify({ data: [] }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
       }
       return new Response(null, { status: 404 });
     };

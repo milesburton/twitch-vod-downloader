@@ -3,17 +3,8 @@ import { Video, Transcript } from "../shared/types";
 import { promises as fs } from "fs";
 import path from "path";
 
-// =============================================================================
-// Mock Database Helpers
-// =============================================================================
-
-/**
- * Creates an in-memory SQLite database for testing
- */
 export function createMockDatabase(): sqlite3.Database {
   const db = new sqlite3.Database(":memory:");
-
-  // Create tables synchronously for testing
   db.serialize(() => {
     db.run(`
       CREATE TABLE IF NOT EXISTS videos (
@@ -38,9 +29,6 @@ export function createMockDatabase(): sqlite3.Database {
   return db;
 }
 
-/**
- * Closes database connection (for cleanup after tests)
- */
 export async function closeMockDatabase(db: sqlite3.Database): Promise<void> {
   return new Promise((resolve, reject) => {
     db.close((err) => {
@@ -50,13 +38,6 @@ export async function closeMockDatabase(db: sqlite3.Database): Promise<void> {
   });
 }
 
-// =============================================================================
-// Factory Functions for Test Data
-// =============================================================================
-
-/**
- * Creates a mock Video object with default or custom values
- */
 export function createMockVideo(overrides?: Partial<Video>): Video {
   return {
     id: "12345678",
@@ -66,10 +47,9 @@ export function createMockVideo(overrides?: Partial<Video>): Video {
   };
 }
 
-/**
- * Creates a mock Transcript object with default or custom values
- */
-export function createMockTranscript(overrides?: Partial<Transcript>): Transcript {
+export function createMockTranscript(
+  overrides?: Partial<Transcript>,
+): Transcript {
   return {
     id: crypto.randomUUID(),
     video_id: "12345678",
@@ -84,10 +64,6 @@ export function createMockTranscript(overrides?: Partial<Transcript>): Transcrip
   };
 }
 
-// =============================================================================
-// Mock Fetch Helper
-// =============================================================================
-
 interface MockFetchResponse {
   ok: boolean;
   status: number;
@@ -95,11 +71,11 @@ interface MockFetchResponse {
   text: () => Promise<string>;
 }
 
-/**
- * Creates a mock fetch function with predefined responses
- */
 export function mockFetch(responses: Record<string, any>): typeof fetch {
-  return async (url: string | URL | Request, _init?: RequestInit): Promise<MockFetchResponse> => {
+  return async (
+    url: string | URL | Request,
+    _init?: RequestInit,
+  ): Promise<MockFetchResponse> => {
     const urlString = typeof url === "string" ? url : url.toString();
 
     if (responses[urlString]) {
@@ -111,8 +87,6 @@ export function mockFetch(responses: Record<string, any>): typeof fetch {
         text: async () => JSON.stringify(response.data),
       } as MockFetchResponse;
     }
-
-    // Default 404 response
     return {
       ok: false,
       status: 404,
@@ -121,10 +95,6 @@ export function mockFetch(responses: Record<string, any>): typeof fetch {
     } as MockFetchResponse;
   };
 }
-
-// =============================================================================
-// Mock Bun.spawn Helper
-// =============================================================================
 
 interface MockSpawnResult {
   exitCode: number | Promise<number>;
@@ -162,7 +132,7 @@ export async function createTempTestDir(prefix = "test"): Promise<string> {
     process.cwd(),
     "data",
     "test-temp",
-    `${prefix}_${Date.now()}_${Math.random().toString(36).substring(2)}`
+    `${prefix}_${Date.now()}_${Math.random().toString(36).substring(2)}`,
   );
   await fs.mkdir(tmpDir, { recursive: true });
   return tmpDir;
@@ -185,7 +155,7 @@ export async function cleanupTempTestDir(dirPath: string): Promise<void> {
 export async function createTempFile(
   dirPath: string,
   filename: string,
-  content: string
+  content: string,
 ): Promise<string> {
   const filePath = path.join(dirPath, filename);
   await fs.writeFile(filePath, content, "utf-8");
@@ -236,7 +206,7 @@ export async function readTestFile(filePath: string): Promise<string> {
  * Promisifies a database operation that uses callbacks
  */
 export function promisifyDbOperation<T>(
-  operation: (callback: (err: Error | null, result?: T) => void) => void
+  operation: (callback: (err: Error | null, result?: T) => void) => void,
 ): Promise<T> {
   return new Promise((resolve, reject) => {
     operation((err, result) => {
@@ -250,7 +220,7 @@ export function promisifyDbOperation<T>(
  * Promisifies a database run operation (for INSERT, UPDATE, DELETE)
  */
 export function promisifyDbRun(
-  operation: (callback: (err: Error | null) => void) => void
+  operation: (callback: (err: Error | null) => void) => void,
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     operation((err) => {
