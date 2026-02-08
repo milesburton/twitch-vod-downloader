@@ -1,0 +1,229 @@
+import { downloadTwitchVideo } from "./services/download.js";
+import { generateTranscript } from "./transcript/transcript.js";
+import {
+  getTranscriptByVideoIdAsync,
+  getVideoByIdAsync,
+  deleteVideoByIdAsync,
+  initDb
+} from "./db/index.js";
+import { fetchVideoIDs } from "./services/scraper.js";
+import { ensureDirExists, filterVideoIDs, getDataPath } from "./shared/utils.js";
+import path from "path";
+import fs from "fs";
+import { saveVideoMetadata } from "./services/video-manager.js";
+import { uploadToYouTube } from "./services/youtube.js";
+
+export async function cleanTempDirectory() {
+  const tempDir = getDataPath("temp");
+  console.log(`🧹 Cleaning temporary directory: ${tempDir}`);
+  try {
+    const entries = await fs.promises.readdir(tempDir, { withFileTypes: true });
+    for (const dirEntry of entries) {
+      const fullPath = path.join(tempDir, dirEntry.name);
+      await fs.promises.rm(fullPath, { recursive: true, force: true });
+      console.log(`🗑️ Removed: ${fullPath}`);
+    }
+    console.log("✨ Temporary directory cleaned.");
+  } catch (error) {
+    console.error("❗ Error cleaning temporary directory:", error);
+  }
+}
+
+export async function checkVideoExists(
+  videoID: string,
+): Promise<{ exists: boolean; filePath?: string }> {
+  const videoDir = getDataPath("videos");
+  try {
+    const extensions = [".mp4", ".mkv", ".webm"];
+    const files = await fs.promises.readdir(videoDir, { withFileTypes: true });
+
+    // Check for files containing the video ID in various formats
+    // New format: "Title - DD/MM/YYYY.mp4"
+    // Old format: "YYYY-MM-DD_vod_${videoID}.mp4"
+    for (const entry of files) {
+      if (!entry.isFile()) continue;
+
+      // Check old format (for backward compatibility)
+      for (const ext of extensions) {
+        const suffix = `_vod_${videoID}${ext}`;
+        if (entry.name.endsWith(suffix)) {
+          return { exists: true, filePath: path.join(videoDir, entry.name) };
+        }
+      }
+
+      // For new format, we rely on database file_path matching
+      // This function is called after checking the database, so if the file exists at the stored path, it will be found
+    }
+    return { exists: false };
+  } catch (error) {
+    console.error(`Error checking video file existence: ${error}`);
+    return { exists: false };
+  }
+}
+
+export async function processVideos() {
+  const CHANNEL_NAME = process.env.CHANNEL_NAME;
+  const FILTER_CRITERIA = process.env.FILTER_CRITERIA;
+  const SPECIFIC_VODS = process.env.SPECIFIC_VODS;
+  const ENABLE_TRANSCRIPTS = String(process.env.ENABLE_TRANSCRIPTS).toLowerCase() === "true";
+  const ENABLE_YOUTUBE_UPLOAD = String(process.env.ENABLE_YOUTUBE_UPLOAD).toLowerCase() === "true";
+
+  console.log("🔍 Checking for new Twitch videos...");
+
+  if (!CHANNEL_NAME) {
+    console.error("❌ Missing CHANNEL_NAME in .env");
+    return;
+  }
+
+  const db = initDb();
+
+  try {
+    const videoIDs = await fetchVideoIDs(CHANNEL_NAME);
+    console.log(`📹 Found ${videoIDs.length} videos to check`);
+
+    const filteredVideoIDs = filterVideoIDs(
+      videoIDs,
+      FILTER_CRITERIA,
+      SPECIFIC_VODS,
+    );
+
+    if (SPECIFIC_VODS && SPECIFIC_VODS.length > 0) {
+      console.log(`🎯 Targeting specific VODs: ${SPECIFIC_VODS}`);
+    } else if (FILTER_CRITERIA?.trim()) {
+      console.log(`🔍 Applying filter criteria: ${FILTER_CRITERIA}`);
+    }
+
+    console.log(`📹 Processing ${filteredVideoIDs.length} videos`);
+
+    for (const videoID of filteredVideoIDs) {
+      const video = await getVideoByIdAsync(db, videoID);
+
+      // Check if file exists - prioritize database file_path if available
+      let videoFileExists = false;
+      let filePath: string | undefined;
+
+      if (video?.file_path) {
+        // Check if the file at the stored path exists
+        try {
+          await fs.promises.access(video.file_path);
+          videoFileExists = true;
+          filePath = video.file_path;
+        } catch {
+          // File doesn't exist at stored path, fall back to pattern search
+          const result = await checkVideoExists(videoID);
+          videoFileExists = result.exists;
+          filePath = result.filePath;
+        }
+      } else {
+        // No database record, search for file by pattern
+        const result = await checkVideoExists(videoID);
+        videoFileExists = result.exists;
+        filePath = result.filePath;
+      }
+
+      if (videoFileExists && filePath) {
+        let currentVideo = video;
+
+        if (!currentVideo) {
+          console.log(
+            `⚠️ Found video file for ${videoID} but no database entry. Saving metadata...`,
+          );
+          try {
+            await saveVideoMetadata(db, {
+              id: videoID,
+              file_path: filePath,
+              created_at: new Date().toISOString(),
+            });
+            console.log(`✅ Successfully saved metadata for ${videoID}`);
+
+            currentVideo = await getVideoByIdAsync(db, videoID);
+          } catch (error) {
+            console.error(`❌ Error saving metadata: ${error}`);
+            continue;
+          }
+        }
+
+        if (
+          ENABLE_TRANSCRIPTS &&
+          currentVideo &&
+          !(await getTranscriptByVideoIdAsync(db, videoID))
+        ) {
+          console.log(`🎙️ Generating transcript for video: ${videoID}`);
+          try {
+            await generateTranscript(db, currentVideo);
+          } catch (error) {
+            console.error(
+              `❌ Error generating transcript for ${videoID}:`,
+              error,
+            );
+            await deleteVideoByIdAsync(db, videoID);
+          }
+        }
+        continue;
+      }
+
+      if (video) {
+        console.log(
+          `⚠️ Found database entry for ${videoID} but no video file. Cleaning up...`,
+        );
+      }
+
+      console.log(`🚀 Processing new video with ID: ${videoID}`);
+      const videoUrl = `https://www.twitch.tv/videos/${videoID}`;
+
+      try {
+        const video = await downloadTwitchVideo(db, videoUrl);
+        if (video) {
+          console.log(`⬇️ Downloaded video: ${videoID}`);
+
+          // Upload to YouTube if enabled
+          if (ENABLE_YOUTUBE_UPLOAD) {
+            try {
+              await uploadToYouTube(db, video);
+            } catch (error) {
+              console.error(`❌ Error uploading to YouTube for ${videoID}:`, error);
+              // Continue with transcript generation even if upload fails
+            }
+          }
+
+          // Generate transcript if enabled
+          if (ENABLE_TRANSCRIPTS) {
+            await generateTranscript(db, video);
+          }
+        } else {
+          console.warn(`⚠️ Could not download video: ${videoID}`);
+          try {
+            await deleteVideoByIdAsync(db, videoID);
+            console.log(
+              `🗑️ Deleted video metadata for failed download: ${videoID}`,
+            );
+          } catch (dbError) {
+            console.error(`Error deleting the video metadata ${dbError}`);
+          }
+        }
+      } catch (error) {
+        console.error(`❌ Error processing video ${videoID}:`, error);
+        try {
+          await deleteVideoByIdAsync(db, videoID);
+          console.log(`🗑️ Deleted video metadata after error: ${videoID}`);
+        } catch (dbError) {
+          console.error(`Error deleting the video metadata ${dbError}`);
+        }
+      }
+    }
+  } catch (error) {
+    console.error("❗ Error in processVideos:", error);
+  } finally {
+    db.close();
+    console.log("🏁 Process complete.");
+  }
+}
+
+export async function initializeDirectories() {
+  await ensureDirExists(getDataPath(""));
+  await ensureDirExists(getDataPath("audio"));
+  await ensureDirExists(getDataPath("transcripts"));
+  await ensureDirExists(getDataPath("db"));
+  await ensureDirExists(getDataPath("videos"));
+  await ensureDirExists(getDataPath("temp"));
+}

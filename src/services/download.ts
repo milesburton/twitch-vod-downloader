@@ -1,6 +1,6 @@
 import Database from "sqlite3";
 import { saveVideoMetadata } from "./video-manager.js";
-import { execWithLogs, formatDatePrefix, getDataPath, getTempFilePath } from "../shared/utils";
+import { execWithLogs, formatDateForFilename, getDataPath, getTempFilePath, sanitizeFilename } from "../shared/utils";
 import { Video } from "../shared/types";
 import { join } from "path";
 import { promises as fs } from "fs";
@@ -59,8 +59,10 @@ async function downloadTwitchVideo(
 
   const videoDir = getDataPath("videos");
 
-  // Fetch upload date from Twitch API
+  // Fetch metadata from Twitch API
   let uploadDate: string | null = null;
+  let videoTitle: string | null = null;
+  let videoDuration: number | null = null;
   try {
     const apiUrl = `https://api.twitch.tv/helix/videos?id=${videoID}`;
     const clientId = "kimne78kx3ncx6brgo4mv6wki5h1ko";
@@ -72,27 +74,40 @@ async function downloadTwitchVideo(
     });
     if (resp.ok) {
       const data = await resp.json();
-      if (data.data && data.data.length > 0 && data.data[0].created_at) {
-        uploadDate = data.data[0].created_at;
+      if (data.data && data.data.length > 0) {
+        const videoData = data.data[0];
+        if (videoData.created_at) {
+          uploadDate = videoData.created_at;
+        }
+        if (videoData.title) {
+          videoTitle = videoData.title;
+        }
+        if (videoData.duration) {
+          // Duration is in format like "2h30m15s" - convert to seconds
+          const durationStr = videoData.duration;
+          const hours = durationStr.match(/(\d+)h/)?.[1] || 0;
+          const minutes = durationStr.match(/(\d+)m/)?.[1] || 0;
+          const seconds = durationStr.match(/(\d+)s/)?.[1] || 0;
+          videoDuration = (Number(hours) * 3600) + (Number(minutes) * 60) + Number(seconds);
+        }
       }
     }
   } catch (e) {
-    console.warn("Could not fetch upload date from Twitch API:", e);
+    console.warn("Could not fetch metadata from Twitch API:", e);
   }
 
-  let datePrefix: string;
-  if (uploadDate) {
-    datePrefix = formatDatePrefix(new Date(uploadDate));
-  } else {
-    datePrefix = formatDatePrefix(new Date());
-  }
-  const finalOutputFile = join(videoDir, `${datePrefix}_vod_${videoID}.mp4`);
+  // Create filename in format: "Title - DD/MM/YYYY.mp4"
+  const uploadDateObj = uploadDate ? new Date(uploadDate) : new Date();
+  const dateStr = formatDateForFilename(uploadDateObj);
+  const titlePart = videoTitle ? videoTitle : `VOD_${videoID}`;
+  const baseFilename = `${titlePart} - ${dateStr}.mp4`;
+  const finalOutputFile = join(videoDir, sanitizeFilename(baseFilename));
 
   let tempFilePath: string | null = null;
 
   try {
     const temp = await getTempFilePath(
-      `${datePrefix}_vod_${videoID}`,
+      `${titlePart}_${videoID}`,
       ".mp4.part",
     );
     tempFilePath = temp;
@@ -109,6 +124,8 @@ async function downloadTwitchVideo(
 
     const video: Video = {
       id: videoID,
+      title: videoTitle || undefined,
+      duration: videoDuration || undefined,
       file_path: finalOutputFile,
       created_at: uploadDate ? new Date(uploadDate).toISOString() : new Date().toISOString(),
     };

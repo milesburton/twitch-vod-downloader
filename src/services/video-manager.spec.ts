@@ -40,13 +40,12 @@ describe("saveVideoMetadata", () => {
     }, 100);
   });
 
-  test("creates new timestamp when saving", (done) => {
+  test("preserves created_at timestamp when provided", (done) => {
     const video = createMockVideo({
       id: "timestamp-test",
-      created_at: "2020-01-01T00:00:00Z", // Old timestamp
+      created_at: "2020-01-01T00:00:00Z", // Specific timestamp from Twitch
     });
 
-    const beforeSave = new Date();
     saveVideoMetadata(db, video);
 
     setTimeout(() => {
@@ -54,10 +53,8 @@ describe("saveVideoMetadata", () => {
         expect(err).toBeNull();
         expect(result).not.toBeNull();
 
-        // Should have created a new timestamp, not use the old one
-        const savedTimestamp = new Date(result!.created_at);
-        expect(savedTimestamp.getTime()).toBeGreaterThanOrEqual(beforeSave.getTime());
-        expect(result?.created_at).not.toBe("2020-01-01T00:00:00Z");
+        // Should preserve the original timestamp from the video object
+        expect(result?.created_at).toBe("2020-01-01T00:00:00Z");
         done();
       });
     }, 100);

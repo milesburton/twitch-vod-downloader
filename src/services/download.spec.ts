@@ -24,6 +24,19 @@ await mock.module("../shared/utils", () => ({
     const dd = String(date.getDate()).padStart(2, "0");
     return `${yyyy}-${mm}-${dd}`;
   },
+  formatDateForFilename: (date: Date) => {
+    const dd = String(date.getDate()).padStart(2, "0");
+    const mm = String(date.getMonth() + 1).padStart(2, "0");
+    const yyyy = date.getFullYear();
+    return `${dd}/${mm}/${yyyy}`;
+  },
+  sanitizeFilename: (filename: string) => {
+    return filename
+      .replace(/[/\\:*?"<>|]/g, "_")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, 200);
+  },
   getDataPath: (subdir: string) => `/data/${subdir}`,
 }));
 
@@ -73,7 +86,7 @@ describe("downloadTwitchVideo", () => {
       if (url.toString().includes("helix/videos")) {
         return new Response(
           JSON.stringify({
-            data: [{ created_at: uploadDate }],
+            data: [{ created_at: uploadDate, title: "Test Stream" }],
           }),
           { status: 200, headers: { "Content-Type": "application/json" } },
         );
@@ -90,7 +103,8 @@ describe("downloadTwitchVideo", () => {
 
     expect(result).not.toBeNull();
     expect(result?.id).toBe("12345678");
-    expect(result?.file_path).toBe("/data/videos/2024-01-15_vod_12345678.mp4");
+    expect(result?.title).toBe("Test Stream");
+    expect(result?.file_path).toBe("/data/videos/Test Stream - 15_01_2024.mp4");
     expect(mockExecWithLogs).toHaveBeenCalledTimes(1);
     expect(mockRename).toHaveBeenCalledTimes(1);
   });
@@ -108,9 +122,9 @@ describe("downloadTwitchVideo", () => {
 
     expect(result).not.toBeNull();
     expect(result?.id).toBe("87654321");
-    expect(result?.file_path).toContain("_vod_87654321.mp4");
+    expect(result?.file_path).toContain("VOD_87654321 -");
     expect(path.basename(result?.file_path || "")).toMatch(
-      /^\d{4}-\d{2}-\d{2}_vod_87654321\.mp4$/,
+      /^VOD_87654321 - \d{2}_\d{2}_\d{4}\.mp4$/,
     );
   });
 
@@ -244,7 +258,7 @@ describe("downloadTwitchVideo", () => {
       if (url.toString().includes("helix/videos")) {
         capturedHeaders = new Headers(init?.headers);
         return new Response(
-          JSON.stringify({ data: [{ created_at: "2024-01-15T10:30:00Z" }] }),
+          JSON.stringify({ data: [{ created_at: "2024-01-15T10:30:00Z", title: "Test Stream" }] }),
           { status: 200, headers: { "Content-Type": "application/json" } },
         );
       }
@@ -278,8 +292,8 @@ describe("downloadTwitchVideo", () => {
     const result = await downloadTwitchVideo(db, videoUrl);
 
     expect(result).not.toBeNull();
-    // Should use current date as fallback
-    expect(result?.file_path).toMatch(/\d{4}-\d{2}-\d{2}_vod_12345678\.mp4/);
+    // Should use current date and fallback title
+    expect(result?.file_path).toMatch(/VOD_12345678 - \d{2}_\d{2}_\d{4}\.mp4/);
   });
 
   test("handles rename error gracefully", async () => {

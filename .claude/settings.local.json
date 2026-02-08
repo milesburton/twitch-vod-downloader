@@ -8,7 +8,9 @@
       "Bash(git commit:*)",
       "Bash(FILTER_CRITERIA=latest bun run:*)",
       "Bash(bun test:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(bun build:*)",
+      "Read(//workspaces/**)"
     ]
   }
 }

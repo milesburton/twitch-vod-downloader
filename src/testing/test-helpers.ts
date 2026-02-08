@@ -9,6 +9,8 @@ export function createMockDatabase(): sqlite3.Database {
     db.run(`
       CREATE TABLE IF NOT EXISTS videos (
         id TEXT PRIMARY KEY,
+        title TEXT,
+        duration INTEGER,
         file_path TEXT NOT NULL,
         created_at TEXT NOT NULL
       )

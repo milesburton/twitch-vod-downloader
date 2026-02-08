@@ -50,6 +50,23 @@ export function formatDatePrefix(date: Date): string {
   return `${yyyy}-${mm}-${dd}`;
 }
 
+export function formatDateForFilename(date: Date): string {
+  const dd = String(date.getDate()).padStart(2, "0");
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const yyyy = date.getFullYear();
+  return `${dd}/${mm}/${yyyy}`;
+}
+
+export function sanitizeFilename(filename: string): string {
+  // Replace invalid characters with underscores
+  // Invalid chars: / \ : * ? " < > |
+  return filename
+    .replace(/[/\\:*?"<>|]/g, "_")
+    .replace(/\s+/g, " ") // Normalize whitespace
+    .trim()
+    .slice(0, 200); // Limit length to avoid filesystem issues
+}
+
 export async function readJsonFile<T>(file: string): Promise<T | []> {
   try {
     const data = await fs.promises.readFile(file, "utf8");

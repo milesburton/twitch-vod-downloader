@@ -22,8 +22,34 @@ services:
       - data:/workspace/data
       - videos:/workspace/data/videos
       - transcripts:/workspace/data/transcripts
-    volumes:
-      data:
-      videos:
-      transcripts:
     command: ["bun", "run", "src/main.ts"]
+
+  twitch-scheduler:
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    build:
+      context: .
+      dockerfile: .devcontainer/Dockerfile
+    container_name: twitch-vod-scheduler
+    restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    env_file:
+      - .env
+    volumes:
+      - .:/workspace
+      - data:/workspace/data
+      - videos:/workspace/data/videos
+      - transcripts:/workspace/data/transcripts
+    command: ["bun", "run", "src/scheduler.ts"]
+
+volumes:
+  data:
+  videos:
+  transcripts:

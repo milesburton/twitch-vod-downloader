@@ -7,6 +7,8 @@ import {
 // Helper functions for transforming DB rows
 const transformVideo = (row: any): Video => ({
   id: row.id,
+  title: row.title,
+  duration: row.duration,
   file_path: row.file_path,
   created_at: row.created_at,
 });
@@ -21,8 +23,8 @@ const transformTranscript = (row: any): Transcript => ({
 
 export function insertVideo(db: sqlite3.Database, video: Video, cb?: (err: Error | null) => void) {
   db.run(
-    `INSERT INTO videos (id, file_path, created_at) VALUES (?, ?, ?)`,
-    [video.id, video.file_path, video.created_at],
+    `INSERT INTO videos (id, title, duration, file_path, created_at) VALUES (?, ?, ?, ?, ?)`,
+    [video.id, video.title || null, video.duration || null, video.file_path, video.created_at],
     cb
   );
 }
