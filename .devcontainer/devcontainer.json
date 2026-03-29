@@ -68,6 +68,16 @@
       "source": "${localWorkspaceFolder}/shared",
       "target": "/workspace/shared",
       "type": "bind"
+    },
+    {
+      "source": "${localEnv:HOME}/.config/gh",
+      "target": "/home/bun/.config/gh",
+      "type": "bind"
+    },
+    {
+      "source": "${localEnv:HOME}/.gitconfig",
+      "target": "/home/bun/.gitconfig",
+      "type": "bind"
     }
   ],
   "containerEnv": {
