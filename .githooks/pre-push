@@ -1,7 +1,12 @@
 #!/usr/bin/env sh
 set -eu
 
-printf "[pre-push] Running Deno test suite...\n"
-deno task test:deno || { printf "Deno tests failed.\n"; exit 1; }
+if ! command -v bun >/dev/null 2>&1; then
+	printf "[pre-push] Bun not found in PATH; skipping local checks (CI will enforce).\n"
+	exit 0
+fi
+
+printf "[pre-push] Running Bun test suite...\n"
+bun test || { printf "Bun tests failed.\n"; exit 1; }
 
 printf "[pre-push] OK.\n"
