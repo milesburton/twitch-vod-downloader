@@ -1,11 +1,20 @@
 import sqlite3 from "sqlite3";
 import path from "path";
-import { getDataPath } from "../shared/utils.js";
+import fs from "fs";
+import { getDataPath, ensureDirExists } from "../shared/utils.js";
 
 const { Database } = sqlite3;
 
 export function initDb() {
   const dbPath = getDataPath("db");
+  // Synchronously create the directory - we need it to exist before opening the database
+  try {
+    fs.mkdirSync(dbPath, { recursive: true });
+  } catch (error) {
+    if (error.code !== "EEXIST") {
+      throw error;
+    }
+  }
   const dbFile = path.join(dbPath, "sqlite.db");
   const db = new Database(dbFile);
 
