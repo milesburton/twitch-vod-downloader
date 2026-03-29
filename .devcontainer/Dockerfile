@@ -22,33 +22,31 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ssh \
     tree \
     ca-certificates \
-<<<<<<< HEAD
-    nodejs \
-    npm \
     htop \
     ncdu \
     jq \
+    lnav \
     && gem install lolcat \
     && pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121 \
     && pip3 install --no-cache-dir --upgrade "git+https://github.com/openai/whisper.git@v20231117" \
     && pip install --no-cache-dir --upgrade yt-dlp \
-<<<<<<< HEAD
+    && rm -rf /var/lib/apt/lists/*
+
 # Install Bun
 RUN curl -fsSL https://bun.sh/install | bash
-
-# Install FileBrowser for web-based file browsing
-RUN curl -fsSL https://raw.githubusercontent.com/filebrowser/get/master/get.sh | bash
-=======
-# Install Node.js 20+ for modern tooling (e.g., Playwright)
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt-get install -y --no-install-recommends nodejs \
-    && rm -rf /var/lib/apt/lists/*
 
 # Install Node.js 20+ for modern tooling
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y --no-install-recommends nodejs \
     && rm -rf /var/lib/apt/lists/*
 
+# Install FileBrowser for web-based file browsing
+RUN curl -fsSL https://raw.githubusercontent.com/filebrowser/get/master/get.sh | bash
+
+# Create user and set up directories
+RUN useradd -m -s /usr/bin/fish bun \
+    && mkdir -p /workspace \
+    && chown -R bun:bun /workspace
 
 # Add support for other users that may be set in devcontainer.json
 RUN mkdir -p /workspaces && chown -R bun:bun /workspaces

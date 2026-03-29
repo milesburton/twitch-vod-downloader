@@ -16,20 +16,20 @@ permissions:
 
 jobs:
   unit-tests:
-    name: Deno Unit Tests
+    name: Bun Unit Tests
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Deno
-        uses: denoland/setup-deno@v2
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          deno-version: v2.x
+          bun-version: latest
 
       - name: Run unit tests
-        run: deno task test:deno
+        run: bun test
 
   container-image:
     name: Build and Publish GHCR Image
