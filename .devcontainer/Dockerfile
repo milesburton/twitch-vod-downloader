@@ -79,8 +79,8 @@ RUN echo '# Environment setup' > /home/bun/.config/fish/config.fish && \
     echo 'end' >> /home/bun/.config/fish/config.fish && \
     echo '' >> /home/bun/.config/fish/config.fish && \
     echo '# Application aliases' >> /home/bun/.config/fish/config.fish && \
-    echo 'alias download="bun run src/main.ts"' >> /home/bun/.config/fish/config.fish && \
-    echo 'alias process-chapters="bun run src/chapters/chapter-processor.ts"' >> /home/bun/.config/fish/config.fish && \
+    echo 'alias download="bun run /workspace/src/main.ts"' >> /home/bun/.config/fish/config.fish && \
+    echo 'alias process-chapters="bun run /workspace/src/chapters/chapter-processor.ts"' >> /home/bun/.config/fish/config.fish && \
     echo '' >> /home/bun/.config/fish/config.fish && \
     echo '# Testing aliases' >> /home/bun/.config/fish/config.fish && \
     echo 'alias test="bun test"' >> /home/bun/.config/fish/config.fish && \
