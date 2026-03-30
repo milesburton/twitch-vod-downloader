@@ -1,59 +1,8 @@
-FROM nvidia/cuda:12.1.0-base-ubuntu22.04
+ARG BASE_IMAGE=ghcr.io/milesburton/twitch-vod-downloader-base:main
+FROM ${BASE_IMAGE}
 
-ENV DEBIAN_FRONTEND=noninteractive
 ENV BUN_INSTALL=/home/bun/.bun
 ENV PATH=${BUN_INSTALL}/bin:${PATH}
-
-# Install dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
-    unzip \
-    fish \
-    ffmpeg \
-    git \
-    gh \
-    python3 \
-    python3-pip \
-    sqlite3 \
-    shellcheck \
-    ruby \
-    sudo \
-    vim \
-    ssh \
-    tree \
-    ca-certificates \
-    htop \
-    ncdu \
-    jq \
-    lnav \
-    && gem install lolcat \
-    && pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121 \
-    && pip3 install --no-cache-dir --upgrade "git+https://github.com/openai/whisper.git@v20231117" \
-    && pip install --no-cache-dir --upgrade yt-dlp \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install Node.js 20+ for modern tooling
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt-get install -y --no-install-recommends nodejs \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install FileBrowser for web-based file browsing
-RUN curl -fsSL https://raw.githubusercontent.com/filebrowser/get/master/get.sh | bash
-
-# Create user and set up directories
-RUN useradd -m -s /usr/bin/fish bun \
-    && mkdir -p /home/bun/.bun \
-    && mkdir -p /home/bun/.config/fish \
-    && mkdir -p /workspace \
-    && chown -R bun:bun /home/bun \
-    && chown -R bun:bun /workspace
-
-# Add support for other users that may be set in devcontainer.json
-RUN mkdir -p /workspaces && chown -R bun:bun /workspaces
-
-# Install Bun into the bun user's home directory
-RUN su - bun -c 'curl -fsSL https://bun.sh/install | bash'
-
 
 # Set up fish for the bun user
 USER bun
