@@ -1,0 +1,57 @@
+FROM nvidia/cuda:12.1.0-base-ubuntu22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV BUN_INSTALL=/home/bun/.bun
+ENV PATH=${BUN_INSTALL}/bin:${PATH}
+
+# Install heavyweight system/runtime dependencies that rarely change.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    unzip \
+    fish \
+    ffmpeg \
+    git \
+    gh \
+    python3 \
+    python3-pip \
+    sqlite3 \
+    shellcheck \
+    ruby \
+    sudo \
+    vim \
+    ssh \
+    tree \
+    ca-certificates \
+    htop \
+    ncdu \
+    jq \
+    lnav \
+    && gem install lolcat \
+    && pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121 \
+    && pip3 install --no-cache-dir --upgrade "git+https://github.com/openai/whisper.git@v20231117" \
+    && pip install --no-cache-dir --upgrade yt-dlp \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Node.js 20+ for modern tooling.
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y --no-install-recommends nodejs \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install FileBrowser for web-based file browsing.
+RUN curl -fsSL https://raw.githubusercontent.com/filebrowser/get/master/get.sh | bash
+
+# Create user and directories.
+RUN useradd -m -s /usr/bin/fish bun \
+    && mkdir -p /home/bun/.bun \
+    && mkdir -p /home/bun/.config/fish \
+    && mkdir -p /workspace \
+    && mkdir -p /workspaces \
+    && chown -R bun:bun /home/bun \
+    && chown -R bun:bun /workspace \
+    && chown -R bun:bun /workspaces
+
+# Install Bun into bun user's home.
+RUN su - bun -c 'curl -fsSL https://bun.sh/install | bash'
+
+USER bun
+WORKDIR /workspace

@@ -2,7 +2,10 @@
   "name": "Twitch VOD Downloader",
   "build": {
     "dockerfile": "Dockerfile",
-    "context": ".."
+    "context": "..",
+    "args": {
+      "BASE_IMAGE": "ghcr.io/milesburton/twitch-vod-downloader-base:main"
+    }
   },
   "forwardPorts": [8080],
   "portsAttributes": {
