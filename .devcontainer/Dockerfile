@@ -30,8 +30,8 @@ RUN echo '# Environment setup' > /home/bun/.config/fish/config.fish && \
     echo 'end' >> /home/bun/.config/fish/config.fish && \
     echo '' >> /home/bun/.config/fish/config.fish && \
     echo '# Application aliases' >> /home/bun/.config/fish/config.fish && \
-    echo 'alias download="bun run /workspace/src/main.ts"' >> /home/bun/.config/fish/config.fish && \
-    echo 'alias process-chapters="bun run /workspace/src/chapters/chapter-processor.ts"' >> /home/bun/.config/fish/config.fish && \
+    echo 'alias download="bun run /workspaces/twitch-vod-downloader/src/main.ts"' >> /home/bun/.config/fish/config.fish && \
+    echo 'alias process-chapters="bun run /workspaces/twitch-vod-downloader/src/chapters/chapter-processor.ts"' >> /home/bun/.config/fish/config.fish && \
     echo '' >> /home/bun/.config/fish/config.fish && \
     echo '# Testing aliases' >> /home/bun/.config/fish/config.fish && \
     echo 'alias test="bun test"' >> /home/bun/.config/fish/config.fish && \
@@ -39,12 +39,12 @@ RUN echo '# Environment setup' > /home/bun/.config/fish/config.fish && \
     echo 'alias test:watch="bun test --watch"' >> /home/bun/.config/fish/config.fish && \
     echo '' >> /home/bun/.config/fish/config.fish && \
     echo '# Database aliases' >> /home/bun/.config/fish/config.fish && \
-    echo 'alias db="sqlite3 /workspace/data/db/sqlite.db"' >> /home/bun/.config/fish/config.fish && \
-    echo 'alias db-videos="sqlite3 /workspace/data/db/sqlite.db \"SELECT * FROM videos ORDER BY created_at DESC;\""' >> /home/bun/.config/fish/config.fish && \
-    echo 'alias db-transcripts="sqlite3 /workspace/data/db/sqlite.db \"SELECT video_id, LENGTH(content) as content_length, created_at FROM transcripts;\""' >> /home/bun/.config/fish/config.fish && \
+    echo 'alias db="sqlite3 /workspaces/twitch-vod-downloader/data/db/sqlite.db"' >> /home/bun/.config/fish/config.fish && \
+    echo 'alias db-videos="sqlite3 /workspaces/twitch-vod-downloader/data/db/sqlite.db \"SELECT * FROM videos ORDER BY created_at DESC;\""' >> /home/bun/.config/fish/config.fish && \
+    echo 'alias db-transcripts="sqlite3 /workspaces/twitch-vod-downloader/data/db/sqlite.db \"SELECT video_id, LENGTH(content) as content_length, created_at FROM transcripts;\""' >> /home/bun/.config/fish/config.fish && \
     echo '' >> /home/bun/.config/fish/config.fish && \
     echo '# Debugging and utility aliases' >> /home/bun/.config/fish/config.fish && \
-    echo 'alias disk="ncdu /workspace/data"' >> /home/bun/.config/fish/config.fish && \
+    echo 'alias disk="ncdu /workspaces/twitch-vod-downloader/data"' >> /home/bun/.config/fish/config.fish && \
     echo 'alias browse="echo \"File browser available at http://localhost:8080\""' >> /home/bun/.config/fish/config.fish
 
 # Set Fish as the shell
