@@ -21,7 +21,7 @@ RUN echo '# Environment setup' > /home/bun/.config/fish/config.fish && \
     echo '  echo "-------------------------------------------------" | lolcat' >> /home/bun/.config/fish/config.fish && \
     echo '  echo "Available aliases:" | lolcat' >> /home/bun/.config/fish/config.fish && \
     echo '  echo "  - download: Run VOD downloader" | lolcat' >> /home/bun/.config/fish/config.fish && \
-    echo '  echo "  - test: Run tests | test:coverage: Run with coverage" | lolcat' >> /home/bun/.config/fish/config.fish && \
+    echo '  echo "  - tests: Run tests | tests:coverage: Run with coverage" | lolcat' >> /home/bun/.config/fish/config.fish && \
     echo '  echo "  - db: Open SQLite database | db-videos: List videos" | lolcat' >> /home/bun/.config/fish/config.fish && \
     echo '  echo "  - disk: Check disk usage | browse: File browser info" | lolcat' >> /home/bun/.config/fish/config.fish && \
     echo '  echo "-------------------------------------------------" | lolcat' >> /home/bun/.config/fish/config.fish && \
@@ -30,13 +30,13 @@ RUN echo '# Environment setup' > /home/bun/.config/fish/config.fish && \
     echo 'end' >> /home/bun/.config/fish/config.fish && \
     echo '' >> /home/bun/.config/fish/config.fish && \
     echo '# Application aliases' >> /home/bun/.config/fish/config.fish && \
-    echo 'alias download="bun run /workspaces/twitch-vod-downloader/src/main.ts"' >> /home/bun/.config/fish/config.fish && \
-    echo 'alias process-chapters="bun run /workspaces/twitch-vod-downloader/src/chapters/chapter-processor.ts"' >> /home/bun/.config/fish/config.fish && \
+    echo 'alias download="cd /workspaces/twitch-vod-downloader; and bun run src/main.ts"' >> /home/bun/.config/fish/config.fish && \
+    echo 'alias process-chapters="cd /workspaces/twitch-vod-downloader; and bun run src/chapters/chapter-processor.ts"' >> /home/bun/.config/fish/config.fish && \
     echo '' >> /home/bun/.config/fish/config.fish && \
     echo '# Testing aliases' >> /home/bun/.config/fish/config.fish && \
-    echo 'alias test="bun test"' >> /home/bun/.config/fish/config.fish && \
-    echo 'alias test:coverage="bun test --coverage"' >> /home/bun/.config/fish/config.fish && \
-    echo 'alias test:watch="bun test --watch"' >> /home/bun/.config/fish/config.fish && \
+    echo 'alias tests="cd /workspaces/twitch-vod-downloader; and bun test"' >> /home/bun/.config/fish/config.fish && \
+    echo 'alias tests:coverage="cd /workspaces/twitch-vod-downloader; and bun test --coverage"' >> /home/bun/.config/fish/config.fish && \
+    echo 'alias tests:watch="cd /workspaces/twitch-vod-downloader; and bun test --watch"' >> /home/bun/.config/fish/config.fish && \
     echo '' >> /home/bun/.config/fish/config.fish && \
     echo '# Database aliases' >> /home/bun/.config/fish/config.fish && \
     echo 'alias db="sqlite3 /workspaces/twitch-vod-downloader/data/db/sqlite.db"' >> /home/bun/.config/fish/config.fish && \

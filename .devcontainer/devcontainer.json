@@ -1,91 +1,92 @@
 {
-  "name": "Twitch VOD Downloader",
-  "build": {
-    "dockerfile": "Dockerfile",
-    "context": "..",
-    "args": {
-      "BASE_IMAGE": "ghcr.io/milesburton/twitch-vod-downloader-base:main"
-    }
-  },
-  "forwardPorts": [8080],
-  "portsAttributes": {
-    "8080": {
-      "label": "FileBrowser",
-      "onAutoForward": "notify"
-    }
-  },
-  "customizations": {
-    "vscode": {
-      "extensions": [
-        "dbaeumer.vscode-eslint",
-        "esbenp.prettier-vscode",
-        "eamodio.gitlens",
-        "ms-vscode.vscode-typescript-tslint-plugin",
-        "ms-python.python",
-        "ms-azuretools.vscode-docker",
-        "ms-vscode.vscode-node-debug2",
-        "humao.rest-client",
-        "redhat.vscode-yaml",
-        "mikestead.dotenv",
-        "streetsidesoftware.code-spell-checker",
-        "prisma.prisma",
-        "ms-python.black-formatter",
-        "ms-vscode.live-server",
-        "ms-vscode-remote.remote-ssh",
-        "mechatroner.rainbow-csv",
-        "bungcip.better-toml",
-        "charliermarsh.ruff",
-        "wayou.vscode-todo-highlight",
-        "formulahendry.auto-close-tag",
-        "mongodb.mongodb-vscode",
-        "ms-toolsai.jupyter",
-        "ms-vscode.sqltools",
-        "ms-vscode.vscode-sqlite",
-        "github.copilot",
-        "github.vscode-github-actions",
-        "ryanluker.vscode-coverage-gutters"
-      ],
-      "settings": {
-        "terminal.integrated.defaultProfile.linux": "fish",
-        "editor.formatOnSave": true,
-        "editor.tabSize": 2,
-        "files.trimTrailingWhitespace": true,
-        "typescript.tsdk": "node_modules/typescript/lib"
-      }
-    }
-  },
-  "remoteUser": "bun",
-  "mounts": [
-    {
-      "source": "${localEnv:HOME}/.ssh",
-      "target": "/home/bun/.ssh",
-      "type": "bind",
-      "options": ["readonly"]
-    },
-    {
-      "source": "fish_history",
-      "target": "/home/bun/.local/share/fish",
-      "type": "volume"
-    },
-    {
-      "source": "${localWorkspaceFolder}/shared",
-      "target": "/workspace/shared",
-      "type": "bind"
-    },
-    {
-      "source": "${localEnv:HOME}/.config/gh",
-      "target": "/home/bun/.config/gh",
-      "type": "bind"
-    },
-    {
-      "source": "${localEnv:HOME}/.gitconfig",
-      "target": "/home/bun/.gitconfig",
-      "type": "bind"
-    }
-  ],
-  "containerEnv": {
-    "GIT_SSH_COMMAND": "ssh -o StrictHostKeyChecking=no"
-  },
-  "postCreateCommand": "bun install && bun add -g @biomejs/biome",
-  "postStartCommand": "nohup filebrowser -a 0.0.0.0 -p 8080 -r /workspace/data > /tmp/filebrowser.log 2>&1 &"
+	"name": "Twitch VOD Downloader",
+	"build": {
+		"dockerfile": "Dockerfile",
+		"context": "..",
+		"args": {
+			"BASE_IMAGE": "ghcr.io/milesburton/twitch-vod-downloader-base:main"
+		}
+	},
+	"forwardPorts": [8080],
+	"portsAttributes": {
+		"8080": {
+			"label": "FileBrowser",
+			"onAutoForward": "notify"
+		}
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"dbaeumer.vscode-eslint",
+				"esbenp.prettier-vscode",
+				"eamodio.gitlens",
+				"ms-vscode.vscode-typescript-tslint-plugin",
+				"ms-python.python",
+				"ms-azuretools.vscode-docker",
+				"ms-vscode.vscode-node-debug2",
+				"humao.rest-client",
+				"redhat.vscode-yaml",
+				"mikestead.dotenv",
+				"streetsidesoftware.code-spell-checker",
+				"prisma.prisma",
+				"ms-python.black-formatter",
+				"ms-vscode.live-server",
+				"ms-vscode-remote.remote-ssh",
+				"mechatroner.rainbow-csv",
+				"bungcip.better-toml",
+				"charliermarsh.ruff",
+				"wayou.vscode-todo-highlight",
+				"formulahendry.auto-close-tag",
+				"mongodb.mongodb-vscode",
+				"ms-toolsai.jupyter",
+				"ms-vscode.sqltools",
+				"ms-vscode.vscode-sqlite",
+				"github.copilot",
+				"github.vscode-github-actions",
+				"ryanluker.vscode-coverage-gutters"
+			],
+			"settings": {
+				"terminal.integrated.defaultProfile.linux": "fish",
+				"editor.formatOnSave": true,
+				"editor.tabSize": 2,
+				"files.trimTrailingWhitespace": true,
+				"typescript.tsdk": "node_modules/typescript/lib"
+			}
+		}
+	},
+	"workspaceFolder": "/workspaces/twitch-vod-downloader",
+	"remoteUser": "bun",
+	"mounts": [
+		{
+			"source": "${localEnv:HOME}/.ssh",
+			"target": "/home/bun/.ssh",
+			"type": "bind",
+			"options": ["readonly"]
+		},
+		{
+			"source": "fish_history",
+			"target": "/home/bun/.local/share/fish",
+			"type": "volume"
+		},
+		{
+			"source": "${localWorkspaceFolder}/shared",
+			"target": "/workspace/shared",
+			"type": "bind"
+		},
+		{
+			"source": "${localEnv:HOME}/.config/gh",
+			"target": "/home/bun/.config/gh",
+			"type": "bind"
+		},
+		{
+			"source": "${localEnv:HOME}/.gitconfig",
+			"target": "/home/bun/.gitconfig",
+			"type": "bind"
+		}
+	],
+	"containerEnv": {
+		"GIT_SSH_COMMAND": "ssh -o StrictHostKeyChecking=no"
+	},
+	"postCreateCommand": "bun install && bun add -g @biomejs/biome",
+	"postStartCommand": "nohup filebrowser -a 0.0.0.0 -p 8080 -r /workspace/data > /tmp/filebrowser.log 2>&1 &"
 }

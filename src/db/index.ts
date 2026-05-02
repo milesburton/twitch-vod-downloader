@@ -1,37 +1,37 @@
+import fs from "node:fs";
+import path from "node:path";
 import sqlite3 from "sqlite3";
-import path from "path";
-import fs from "fs";
-import { getDataPath, ensureDirExists } from "../shared/utils.js";
+import { getDataPath } from "../shared/utils.js";
 
 const { Database } = sqlite3;
 
 export function initDb() {
-  const dbPath = getDataPath("db");
-  // Synchronously create the directory - we need it to exist before opening the database
-  try {
-    fs.mkdirSync(dbPath, { recursive: true });
-  } catch (error) {
-    if (error.code !== "EEXIST") {
-      throw error;
-    }
-  }
-  const dbFile = path.join(dbPath, "sqlite.db");
-  const db = new Database(dbFile);
+	const dbPath = getDataPath("db");
+	// Synchronously create the directory - we need it to exist before opening the database
+	try {
+		fs.mkdirSync(dbPath, { recursive: true });
+	} catch (error) {
+		if (error.code !== "EEXIST") {
+			throw error;
+		}
+	}
+	const dbFile = path.join(dbPath, "sqlite.db");
+	const db = new Database(dbFile);
 
-  db.serialize(() => {
-    db.run(`CREATE TABLE IF NOT EXISTS videos (
+	db.serialize(() => {
+		db.run(`CREATE TABLE IF NOT EXISTS videos (
       id TEXT PRIMARY KEY,
       file_path TEXT,
       created_at TEXT
     )`);
-    db.run(`CREATE TABLE IF NOT EXISTS transcripts (
+		db.run(`CREATE TABLE IF NOT EXISTS transcripts (
       id TEXT PRIMARY KEY,
       video_id TEXT REFERENCES videos(id),
       content TEXT,
       segments TEXT,
       created_at TEXT
     )`);
-    db.run(`CREATE TABLE IF NOT EXISTS chapters (
+		db.run(`CREATE TABLE IF NOT EXISTS chapters (
       id TEXT PRIMARY KEY,
       video_id TEXT REFERENCES videos(id),
       start_time INTEGER,
@@ -41,8 +41,8 @@ export function initDb() {
       title TEXT,
       created_at TEXT
     )`);
-  });
-  return db;
+	});
+	return db;
 }
 
 export * from "./helpers.js";

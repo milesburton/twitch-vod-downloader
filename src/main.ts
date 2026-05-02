@@ -1,229 +1,237 @@
-import { downloadTwitchVideo } from "./services/download.js";
-import { generateTranscript } from "./transcript/transcript.js";
-import {
-  getTranscriptByVideoIdAsync,
-  getVideoByIdAsync,
-  deleteVideoByIdAsync,
-  initDb
-} from "./db/index.js";
+import fs from "node:fs";
+import path from "node:path";
 import dotenv from "dotenv";
+import {
+	deleteVideoByIdAsync,
+	getTranscriptByVideoIdAsync,
+	getVideoByIdAsync,
+	initDb,
+} from "./db/index.js";
+import { downloadTwitchVideo } from "./services/download.js";
 import { fetchVideoIDs } from "./services/scraper.js";
-import { ensureDirExists, filterVideoIDs, getDataPath } from "./shared/utils.js";
-import path from "path";
-import fs from "fs";
 import { saveVideoMetadata } from "./services/video-manager.js";
+import {
+	ensureDirExists,
+	filterVideoIDs,
+	getDataPath,
+} from "./shared/utils.js";
+import { generateTranscript } from "./transcript/transcript.js";
 
 dotenv.config();
 const env = process.env;
 const CHANNEL_NAME = env.CHANNEL_NAME;
 const FILTER_CRITERIA = env.FILTER_CRITERIA;
 const SPECIFIC_VODS = env.SPECIFIC_VODS;
-const ENABLE_TRANSCRIPTS = String(env.ENABLE_TRANSCRIPTS).toLowerCase() === "true";
+const ENABLE_TRANSCRIPTS =
+	String(env.ENABLE_TRANSCRIPTS).toLowerCase() === "true";
 
 async function cleanTempDirectory() {
-  const tempDir = getDataPath("temp");
-  console.log(`🧹 Cleaning temporary directory: ${tempDir}`);
-  try {
-    const entries = await fs.promises.readdir(tempDir, { withFileTypes: true });
-    for (const dirEntry of entries) {
-      const fullPath = path.join(tempDir, dirEntry.name);
-      await fs.promises.rm(fullPath, { recursive: true, force: true });
-      console.log(`🗑️ Removed: ${fullPath}`);
-    }
-    console.log("✨ Temporary directory cleaned.");
-  } catch (error) {
-    console.error("❗ Error cleaning temporary directory:", error);
-  }
+	const tempDir = getDataPath("temp");
+	console.log(`🧹 Cleaning temporary directory: ${tempDir}`);
+	try {
+		const entries = await fs.promises.readdir(tempDir, { withFileTypes: true });
+		for (const dirEntry of entries) {
+			const fullPath = path.join(tempDir, dirEntry.name);
+			await fs.promises.rm(fullPath, { recursive: true, force: true });
+			console.log(`🗑️ Removed: ${fullPath}`);
+		}
+		console.log("✨ Temporary directory cleaned.");
+	} catch (error) {
+		console.error("❗ Error cleaning temporary directory:", error);
+	}
 }
 
 async function checkVideoExists(
-  videoID: string,
+	videoID: string,
 ): Promise<{ exists: boolean; filePath?: string }> {
-  const videoDir = getDataPath("videos");
-  try {
-    const extensions = [".mp4", ".mkv", ".webm"];
-    const files = await fs.promises.readdir(videoDir, { withFileTypes: true });
-    for (const entry of files) {
-      if (!entry.isFile()) continue;
-      for (const ext of extensions) {
-        const suffix = `_vod_${videoID}${ext}`;
-        if (entry.name.endsWith(suffix)) {
-          return { exists: true, filePath: path.join(videoDir, entry.name) };
-        }
-      }
-    }
-    return { exists: false };
-  } catch (error) {
-    console.error(`Error checking video file existence: ${error}`);
-    return { exists: false };
-  }
+	const videoDir = getDataPath("videos");
+	try {
+		const extensions = [".mp4", ".mkv", ".webm"];
+		const files = await fs.promises.readdir(videoDir, { withFileTypes: true });
+		for (const entry of files) {
+			if (!entry.isFile()) continue;
+			for (const ext of extensions) {
+				const suffix = `_vod_${videoID}${ext}`;
+				if (entry.name.endsWith(suffix)) {
+					return { exists: true, filePath: path.join(videoDir, entry.name) };
+				}
+			}
+		}
+		return { exists: false };
+	} catch (error) {
+		console.error(`Error checking video file existence: ${error}`);
+		return { exists: false };
+	}
 }
 
 async function processVideos() {
-  console.log("🔍 Checking for new Twitch videos...");
+	console.log("🔍 Checking for new Twitch videos...");
 
-  if (!CHANNEL_NAME) {
-    console.error("❌ Missing CHANNEL_NAME in .env");
-    return;
-  }
+	if (!CHANNEL_NAME) {
+		console.error("❌ Missing CHANNEL_NAME in .env");
+		return;
+	}
 
-  const db = initDb();
+	const db = initDb();
 
-  try {
-    const videoIDs = await fetchVideoIDs(CHANNEL_NAME);
-    console.log(`📹 Found ${videoIDs.length} videos to check`);
+	try {
+		const videoIDs = await fetchVideoIDs(CHANNEL_NAME);
+		console.log(`📹 Found ${videoIDs.length} videos to check`);
 
-    const filteredVideoIDs = filterVideoIDs(
-      videoIDs,
-      FILTER_CRITERIA,
-      SPECIFIC_VODS,
-    );
+		const filteredVideoIDs = filterVideoIDs(
+			videoIDs,
+			FILTER_CRITERIA,
+			SPECIFIC_VODS,
+		);
 
-    if (SPECIFIC_VODS && SPECIFIC_VODS.length > 0) {
-      console.log(`🎯 Targeting specific VODs: ${SPECIFIC_VODS}`);
-    } else if (FILTER_CRITERIA?.trim()) {
-      console.log(`🔍 Applying filter criteria: ${FILTER_CRITERIA}`);
-    }
+		if (SPECIFIC_VODS && SPECIFIC_VODS.length > 0) {
+			console.log(`🎯 Targeting specific VODs: ${SPECIFIC_VODS}`);
+		} else if (FILTER_CRITERIA?.trim()) {
+			console.log(`🔍 Applying filter criteria: ${FILTER_CRITERIA}`);
+		}
 
-    console.log(`📹 Processing ${filteredVideoIDs.length} videos`);
+		console.log(`📹 Processing ${filteredVideoIDs.length} videos`);
 
-    for (const videoID of filteredVideoIDs) {
-      const video = await getVideoByIdAsync(db, videoID);
-      const { exists: videoFileExists, filePath } = await checkVideoExists(
-        videoID,
-      );
+		for (const videoID of filteredVideoIDs) {
+			const video = await getVideoByIdAsync(db, videoID);
+			const { exists: videoFileExists, filePath } =
+				await checkVideoExists(videoID);
 
-      if (videoFileExists && filePath) {
-        let currentVideo = video;
+			if (videoFileExists && filePath) {
+				let currentVideo = video;
 
-        if (!currentVideo) {
-          console.log(
-            `⚠️ Found video file for ${videoID} but no database entry. Saving metadata...`,
-          );
-          try {
-            await saveVideoMetadata(db, {
-              id: videoID,
-              file_path: filePath,
-              created_at: new Date().toISOString(),
-            });
-            console.log(`✅ Successfully saved metadata for ${videoID}`);
+				if (!currentVideo) {
+					console.log(
+						`⚠️ Found video file for ${videoID} but no database entry. Saving metadata...`,
+					);
+					try {
+						await saveVideoMetadata(db, {
+							id: videoID,
+							file_path: filePath,
+							created_at: new Date().toISOString(),
+						});
+						console.log(`✅ Successfully saved metadata for ${videoID}`);
 
-            currentVideo = await getVideoByIdAsync(db, videoID);
-          } catch (error) {
-            console.error(`❌ Error saving metadata: ${error}`);
-            continue;
-          }
-        }
+						currentVideo = await getVideoByIdAsync(db, videoID);
+					} catch (error) {
+						console.error(`❌ Error saving metadata: ${error}`);
+						continue;
+					}
+				}
 
-        if (
-          ENABLE_TRANSCRIPTS &&
-          currentVideo &&
-          !(await getTranscriptByVideoIdAsync(db, videoID))
-        ) {
-          console.log(`🎙️ Generating transcript for video: ${videoID}`);
-          try {
-            await generateTranscript(db, currentVideo);
-          } catch (error) {
-            console.error(
-              `❌ Error generating transcript for ${videoID}:`,
-              error,
-            );
-            await deleteVideoByIdAsync(db, videoID);
-          }
-        }
-        continue;
-      }
+				if (
+					ENABLE_TRANSCRIPTS &&
+					currentVideo &&
+					!(await getTranscriptByVideoIdAsync(db, videoID))
+				) {
+					console.log(`🎙️ Generating transcript for video: ${videoID}`);
+					try {
+						await generateTranscript(db, currentVideo);
+					} catch (error) {
+						console.error(
+							`❌ Error generating transcript for ${videoID}:`,
+							error,
+						);
+						await deleteVideoByIdAsync(db, videoID);
+					}
+				}
+				continue;
+			}
 
-      if (video) {
-        console.log(
-          `⚠️ Found database entry for ${videoID} but no video file. Cleaning up...`,
-        );
-      }
+			if (video) {
+				console.log(
+					`⚠️ Found database entry for ${videoID} but no video file. Cleaning up...`,
+				);
+			}
 
-      console.log(`🚀 Processing new video with ID: ${videoID}`);
-      const videoUrl = `https://www.twitch.tv/videos/${videoID}`;
+			console.log(`🚀 Processing new video with ID: ${videoID}`);
+			const videoUrl = `https://www.twitch.tv/videos/${videoID}`;
 
-      try {
-        const video = await downloadTwitchVideo(db, videoUrl);
-        if (video) {
-          console.log(`⬇️ Downloaded video: ${videoID}`);
-          if (ENABLE_TRANSCRIPTS) {
-            await generateTranscript(db, video);
-          }
-        } else {
-          console.warn(`⚠️ Could not download video: ${videoID}`);
-          try {
-            await deleteVideoByIdAsync(db, videoID);
-            console.log(
-              `🗑️ Deleted video metadata for failed download: ${videoID}`,
-            );
-          } catch (dbError) {
-            console.error(`Error deleting the video metadata ${dbError}`);
-          }
-        }
-      } catch (error) {
-        console.error(`❌ Error processing video ${videoID}:`, error);
-        try {
-          await deleteVideoByIdAsync(db, videoID);
-          console.log(`🗑️ Deleted video metadata after error: ${videoID}`);
-        } catch (dbError) {
-          console.error(`Error deleting the video metadata ${dbError}`);
-        }
-      }
-    }
-  } catch (error) {
-    console.error("❗ Error in processVideos:", error);
-  } finally {
-    db.close();
-    console.log("🏁 Process complete.");
-  }
+			try {
+				const video = await downloadTwitchVideo(db, videoUrl);
+				if (video) {
+					console.log(`⬇️ Downloaded video: ${videoID}`);
+					if (ENABLE_TRANSCRIPTS) {
+						await generateTranscript(db, video);
+					}
+				} else {
+					console.warn(`⚠️ Could not download video: ${videoID}`);
+					try {
+						await deleteVideoByIdAsync(db, videoID);
+						console.log(
+							`🗑️ Deleted video metadata for failed download: ${videoID}`,
+						);
+					} catch (dbError) {
+						console.error(`Error deleting the video metadata ${dbError}`);
+					}
+				}
+			} catch (error) {
+				console.error(`❌ Error processing video ${videoID}:`, error);
+				try {
+					await deleteVideoByIdAsync(db, videoID);
+					console.log(`🗑️ Deleted video metadata after error: ${videoID}`);
+				} catch (dbError) {
+					console.error(`Error deleting the video metadata ${dbError}`);
+				}
+			}
+		}
+	} catch (error) {
+		console.error("❗ Error in processVideos:", error);
+	} finally {
+		db.close();
+		console.log("🏁 Process complete.");
+	}
 }
 
 async function main() {
-  const args = process.argv.slice(2);
-  await ensureDirExists(getDataPath(""));
-  await ensureDirExists(getDataPath("audio"));
-  await ensureDirExists(getDataPath("transcripts"));
-  await ensureDirExists(getDataPath("db"));
-  await ensureDirExists(getDataPath("videos"));
-  await ensureDirExists(getDataPath("temp"));
+	const args = process.argv.slice(2);
+	await ensureDirExists(getDataPath(""));
+	await ensureDirExists(getDataPath("audio"));
+	await ensureDirExists(getDataPath("transcripts"));
+	await ensureDirExists(getDataPath("db"));
+	await ensureDirExists(getDataPath("videos"));
+	await ensureDirExists(getDataPath("temp"));
 
-  if (args[0] === "list") {
-    // List all downloaded videos
-    const videoDir = getDataPath("videos");
-    try {
-      const files = await fs.promises.readdir(videoDir);
-      if (files.length === 0) {
-        console.log("No videos found.");
-      } else {
-        console.log("Downloaded videos:");
-        files.forEach(f => console.log("- ", f));
-      }
-    } catch (err) {
-      console.error("Error reading videos directory:", err);
-    }
-    return;
-  }
-  if (args[0] === "list-transcripts") {
-    // List all transcript files
-    const transcriptDir = getDataPath("transcripts");
-    try {
-      const files = await fs.promises.readdir(transcriptDir);
-      if (files.length === 0) {
-        console.log("No transcripts found.");
-      } else {
-        console.log("Transcript files:");
-        files.forEach(f => console.log("- ", f));
-      }
-    } catch (err) {
-      console.error("Error reading transcripts directory:", err);
-    }
-    return;
-  }
+	if (args[0] === "list") {
+		// List all downloaded videos
+		const videoDir = getDataPath("videos");
+		try {
+			const files = await fs.promises.readdir(videoDir);
+			if (files.length === 0) {
+				console.log("No videos found.");
+			} else {
+				console.log("Downloaded videos:");
+				files.forEach((f) => {
+					console.log("- ", f);
+				});
+			}
+		} catch (err) {
+			console.error("Error reading videos directory:", err);
+		}
+		return;
+	}
+	if (args[0] === "list-transcripts") {
+		// List all transcript files
+		const transcriptDir = getDataPath("transcripts");
+		try {
+			const files = await fs.promises.readdir(transcriptDir);
+			if (files.length === 0) {
+				console.log("No transcripts found.");
+			} else {
+				console.log("Transcript files:");
+				files.forEach((f) => {
+					console.log("- ", f);
+				});
+			}
+		} catch (err) {
+			console.error("Error reading transcripts directory:", err);
+		}
+		return;
+	}
 
-  console.log("🎬 Starting Twitch VOD Downloader");
-  await cleanTempDirectory();
-  await processVideos();
+	console.log("🎬 Starting Twitch VOD Downloader");
+	await cleanTempDirectory();
+	await processVideos();
 }
 
 main();
