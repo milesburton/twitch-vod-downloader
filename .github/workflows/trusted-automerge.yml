@@ -1,5 +1,8 @@
 name: Trusted PR Auto-Approve and Merge
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 on:
   pull_request_target:
     types: [opened, reopened, synchronize, ready_for_review]
