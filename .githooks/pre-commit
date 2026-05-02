@@ -7,7 +7,10 @@ if ! command -v bun >/dev/null 2>&1; then
 fi
 
 printf "[pre-commit] Running Biome checks...\n"
-bunx @biomejs/biome check . || { printf "Biome checks failed.\n"; exit 1; }
+bunx @biomejs/biome check --staged --no-errors-on-unmatched || {
+	printf "Biome checks failed.\n"
+	exit 1
+}
 
 printf "[pre-commit] Running Bun tests...\n"
 bun test || { printf "Bun tests failed.\n"; exit 1; }

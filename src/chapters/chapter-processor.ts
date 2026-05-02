@@ -94,23 +94,57 @@ const dbPath = getDataPath("db");
 const dbFile = path.join(dbPath, "sqlite.db");
 const db = new Database(dbFile);
 
+function dbGetRow<T>(
+	database: sqlite3.Database,
+	sql: string,
+	params: unknown[] = [],
+): Promise<T | undefined> {
+	return new Promise((resolve, reject) => {
+		database.get(sql, params, (err, row) => {
+			if (err) {
+				reject(err);
+				return;
+			}
+			resolve(row as T | undefined);
+		});
+	});
+}
+
+function dbRun(
+	database: sqlite3.Database,
+	sql: string,
+	params: unknown[] = [],
+): Promise<void> {
+	return new Promise((resolve, reject) => {
+		database.run(sql, params, (err) => {
+			if (err) {
+				reject(err);
+				return;
+			}
+			resolve();
+		});
+	});
+}
+
+function isErrnoException(error: unknown): error is NodeJS.ErrnoException {
+	return typeof error === "object" && error !== null && "code" in error;
+}
+
 export async function processTranscript(videoId: string): Promise<void> {
 	try {
 		console.log("🔍 Fetching transcript for video:", videoId);
-		let shouldInsertChapters = false;
-		const existingChaptersStmt = db.prepare(
+		const existingChaptersResult = await dbGetRow<{ count: number }>(
+			db,
 			"SELECT COUNT(*) as count FROM chapters WHERE video_id = ?",
+			[videoId],
 		);
-		const existingChaptersResult = existingChaptersStmt.get(videoId) as {
-			count: number;
-		};
-		if (existingChaptersResult.count === 0) {
-			shouldInsertChapters = true;
-		}
-		const stmt = db.prepare(
+		const shouldInsertChapters = (existingChaptersResult?.count ?? 0) === 0;
+
+		const transcriptRow = await dbGetRow<TranscriptContent>(
+			db,
 			"SELECT content FROM transcripts WHERE video_id = ?",
+			[videoId],
 		);
-		const transcriptRow = stmt.get(videoId) as TranscriptContent | undefined;
 		if (!transcriptRow) {
 			console.error("🚨 No transcript found for video:", videoId);
 			return;
@@ -139,33 +173,39 @@ export async function processTranscript(videoId: string): Promise<void> {
 		);
 		if (shouldInsertChapters) {
 			console.log("💾 Storing chapters in database...");
-			const insertStmt = db.prepare(
-				`
-				INSERT INTO chapters (
-					id,
-					video_id,
-					start_time,
-					end_time,
-					content,
-					summary,
-					title,
-					created_at
-				) VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))
-			`,
-			);
-			db.transaction(() => {
+			await dbRun(db, "BEGIN TRANSACTION");
+			try {
 				for (const chapter of processedChapters) {
-					insertStmt.run(
-						crypto.randomUUID(),
-						videoId,
-						chapter.start_time,
-						chapter.end_time,
-						chapter.content,
-						chapter.summary,
-						chapter.title,
+					await dbRun(
+						db,
+						`
+					INSERT INTO chapters (
+						id,
+						video_id,
+						start_time,
+						end_time,
+						content,
+						summary,
+						title,
+						created_at
+					) VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))
+				`,
+						[
+							crypto.randomUUID(),
+							videoId,
+							chapter.start_time,
+							chapter.end_time,
+							chapter.content,
+							chapter.summary,
+							chapter.title,
+						],
 					);
 				}
-			})();
+				await dbRun(db, "COMMIT");
+			} catch (error) {
+				await dbRun(db, "ROLLBACK");
+				throw error;
+			}
 			console.log(
 				`✅ Chapters inserted into database! 🎉 Found ${processedChapters.length} chapters`,
 			);
@@ -186,7 +226,7 @@ export async function processTranscript(videoId: string): Promise<void> {
 				`🗑️ Removed existing chapter description file: ${descriptionFilePath}`,
 			);
 		} catch (error) {
-			if (error.code !== "ENOENT") {
+			if (!isErrnoException(error) || error.code !== "ENOENT") {
 				throw error;
 			}
 		}

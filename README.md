@@ -212,6 +212,17 @@ This project uses:
 - **Biome** for linting and formatting
 - **TypeScript** for type safety
 
+Install Git hooks locally:
+
+```bash
+bun install
+bun run hooks:install
+```
+
+Configured hooks enforce:
+- **pre-commit:** Biome checks on staged files + test suite
+- **commit-msg:** Conventional Commits via Commitlint
+
 Pull requests welcome!
 
 ## Important Notes

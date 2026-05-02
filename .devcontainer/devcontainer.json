@@ -20,10 +20,8 @@
 				"dbaeumer.vscode-eslint",
 				"esbenp.prettier-vscode",
 				"eamodio.gitlens",
-				"ms-vscode.vscode-typescript-tslint-plugin",
 				"ms-python.python",
 				"ms-azuretools.vscode-docker",
-				"ms-vscode.vscode-node-debug2",
 				"humao.rest-client",
 				"redhat.vscode-yaml",
 				"mikestead.dotenv",
@@ -35,13 +33,16 @@
 				"mechatroner.rainbow-csv",
 				"bungcip.better-toml",
 				"charliermarsh.ruff",
+				"biomejs.biome",
 				"wayou.vscode-todo-highlight",
 				"formulahendry.auto-close-tag",
 				"mongodb.mongodb-vscode",
 				"ms-toolsai.jupyter",
-				"ms-vscode.sqltools",
-				"ms-vscode.vscode-sqlite",
+				"mtxr.sqltools",
+				"alexcvzz.vscode-sqlite",
 				"github.copilot",
+				"github.copilot-chat",
+				"anthropic.claude-code",
 				"github.vscode-github-actions",
 				"ryanluker.vscode-coverage-gutters"
 			],
@@ -50,19 +51,14 @@
 				"editor.formatOnSave": true,
 				"editor.tabSize": 2,
 				"files.trimTrailingWhitespace": true,
-				"typescript.tsdk": "node_modules/typescript/lib"
+				"js/ts.tsdk.path": "node_modules/typescript/lib"
 			}
 		}
 	},
 	"workspaceFolder": "/workspaces/twitch-vod-downloader",
 	"remoteUser": "bun",
 	"mounts": [
-		{
-			"source": "${localEnv:HOME}/.ssh",
-			"target": "/home/bun/.ssh",
-			"type": "bind",
-			"options": ["readonly"]
-		},
+		"source=${localEnv:HOME}/.ssh,target=/home/bun/.ssh,type=bind,readonly",
 		{
 			"source": "fish_history",
 			"target": "/home/bun/.local/share/fish",
