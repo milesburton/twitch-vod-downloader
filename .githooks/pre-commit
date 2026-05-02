@@ -12,7 +12,7 @@ bunx @biomejs/biome check --staged --no-errors-on-unmatched || {
 	exit 1
 }
 
-printf "[pre-commit] Running Bun tests...\n"
-bun test || { printf "Bun tests failed.\n"; exit 1; }
+printf "[pre-commit] Running Bun coverage gate...\n"
+bun run coverage:check || { printf "Coverage check failed.\n"; exit 1; }
 
 printf "[pre-commit] All checks passed.\n"

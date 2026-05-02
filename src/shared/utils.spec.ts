@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, spyOn, test } from "bun:test";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import {
@@ -10,8 +10,10 @@ import {
 } from "../testing/test-helpers";
 import {
 	ensureDirExists,
+	execWithLogs,
 	execWithOutput,
 	filterVideoIDs,
+	formatDatePrefix,
 	getDataPath,
 	getProjectRoot,
 	getTempFilePath,
@@ -92,8 +94,31 @@ describe("ensureDirExists", () => {
 	});
 
 	test("throws on invalid path with permission issues", async () => {
-		// This test is platform-specific and may not work in all environments
-		// Skipping for now as it depends on file system permissions
+		const fsModule = await import("node:fs");
+		const mkdirSpy = spyOn(fsModule.promises, "mkdir").mockRejectedValueOnce(
+			Object.assign(new Error("permission denied"), {
+				code: "EACCES",
+			}),
+		);
+
+		await expect(
+			ensureDirExists(path.join(testDir, "forbidden")),
+		).rejects.toThrow("permission denied");
+
+		mkdirSpy.mockRestore();
+	});
+
+	test("ignores EEXIST errors from mkdir", async () => {
+		const fsModule = await import("node:fs");
+		const mkdirSpy = spyOn(fsModule.promises, "mkdir").mockRejectedValueOnce(
+			Object.assign(new Error("exists"), { code: "EEXIST" }),
+		);
+
+		await expect(
+			ensureDirExists(path.join(testDir, "already-exists")),
+		).resolves.toBe(undefined);
+
+		mkdirSpy.mockRestore();
 	});
 });
 
@@ -215,11 +240,40 @@ describe("execWithOutput", () => {
 	});
 });
 
+describe("execWithLogs", () => {
+	test("returns exit code for a successful command", async () => {
+		const code = await execWithLogs(["sh", "-c", "echo hello-from-logs"]);
+		expect(code).toBe(0);
+	});
+
+	test("returns non-zero exit code for a failing command", async () => {
+		const code = await execWithLogs(["sh", "-c", "exit 7"]);
+		expect(code).toBe(7);
+	});
+
+	test("streams stderr output without failing", async () => {
+		const code = await execWithLogs(["sh", "-c", "echo err-line 1>&2"]);
+		expect(code).toBe(0);
+	});
+});
+
+describe("formatDatePrefix", () => {
+	test("formats date as YYYY-MM-DD", () => {
+		const formatted = formatDatePrefix(new Date("2024-03-05T12:00:00Z"));
+		expect(formatted).toBe("2024-03-05");
+	});
+
+	test("zero-pads month and day", () => {
+		const formatted = formatDatePrefix(new Date("2024-01-09T00:00:00Z"));
+		expect(formatted).toBe("2024-01-09");
+	});
+});
+
 describe("filterVideoIDs", () => {
 	const testVideoIDs = ["id1", "id2", "id3", "id4", "id5"];
 
 	test("returns empty array for non-array input", () => {
-		const result = filterVideoIDs("not-an-array" as any);
+		const result = filterVideoIDs("not-an-array" as unknown as string[]);
 		expect(result).toEqual([]);
 	});
 

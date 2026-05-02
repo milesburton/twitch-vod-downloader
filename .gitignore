@@ -25,3 +25,4 @@ node_modules/
 # Test coverage (if using external tools)
 coverage/
 *.lcov
+.tmp/

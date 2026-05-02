@@ -1,7 +1,16 @@
-import { afterEach, describe, expect, test } from "bun:test";
-import { promises as fs } from "node:fs";
+import { afterEach, describe, expect, spyOn, test } from "bun:test";
+import fsSync, { promises as fs } from "node:fs";
 import path from "node:path";
 import { initDb } from "./index";
+
+interface SqliteTableRow {
+	name: string;
+}
+
+interface SqliteColumnRow {
+	name: string;
+	pk: number;
+}
 
 describe("initDb", () => {
 	const testDbPath = path.join(process.cwd(), "data", "db", "sqlite.db");
@@ -25,7 +34,7 @@ describe("initDb", () => {
 		return new Promise<void>((resolve, reject) => {
 			db.all(
 				"SELECT name FROM sqlite_master WHERE type='table'",
-				(err, tables: any[]) => {
+				(err, tables: SqliteTableRow[]) => {
 					if (err) return reject(err);
 
 					const tableNames = tables.map((t) => t.name);
@@ -40,6 +49,33 @@ describe("initDb", () => {
 				},
 			);
 		});
+	});
+
+	test("continues when mkdirSync throws EEXIST", async () => {
+		await fs.mkdir(path.dirname(testDbPath), { recursive: true });
+		const mkdirSpy = spyOn(fsSync, "mkdirSync").mockImplementationOnce(() => {
+			throw Object.assign(new Error("exists"), { code: "EEXIST" });
+		});
+
+		const db = initDb();
+
+		await new Promise<void>((resolve, reject) => {
+			db.close((err) => {
+				if (err) return reject(err);
+				resolve();
+			});
+		});
+
+		mkdirSpy.mockRestore();
+	});
+
+	test("throws when mkdirSync fails with non-EEXIST error", () => {
+		const mkdirSpy = spyOn(fsSync, "mkdirSync").mockImplementationOnce(() => {
+			throw Object.assign(new Error("permission denied"), { code: "EACCES" });
+		});
+
+		expect(() => initDb()).toThrow("permission denied");
+		mkdirSpy.mockRestore();
 	});
 
 	test("creates database file in correct location", async () => {
@@ -63,7 +99,7 @@ describe("initDb", () => {
 		const db = initDb();
 
 		return new Promise<void>((resolve, reject) => {
-			db.all("PRAGMA table_info(videos)", (err, columns: any[]) => {
+			db.all("PRAGMA table_info(videos)", (err, columns: SqliteColumnRow[]) => {
 				if (err) return reject(err);
 
 				const columnNames = columns.map((c) => c.name);
@@ -87,21 +123,24 @@ describe("initDb", () => {
 		const db = initDb();
 
 		return new Promise<void>((resolve, reject) => {
-			db.all("PRAGMA table_info(transcripts)", (err, columns: any[]) => {
-				if (err) return reject(err);
+			db.all(
+				"PRAGMA table_info(transcripts)",
+				(err, columns: SqliteColumnRow[]) => {
+					if (err) return reject(err);
 
-				const columnNames = columns.map((c) => c.name);
-				expect(columnNames).toContain("id");
-				expect(columnNames).toContain("video_id");
-				expect(columnNames).toContain("content");
-				expect(columnNames).toContain("segments");
-				expect(columnNames).toContain("created_at");
+					const columnNames = columns.map((c) => c.name);
+					expect(columnNames).toContain("id");
+					expect(columnNames).toContain("video_id");
+					expect(columnNames).toContain("content");
+					expect(columnNames).toContain("segments");
+					expect(columnNames).toContain("created_at");
 
-				db.close((closeErr) => {
-					if (closeErr) return reject(closeErr);
-					resolve();
-				});
-			});
+					db.close((closeErr) => {
+						if (closeErr) return reject(closeErr);
+						resolve();
+					});
+				},
+			);
 		});
 	});
 
@@ -109,24 +148,27 @@ describe("initDb", () => {
 		const db = initDb();
 
 		return new Promise<void>((resolve, reject) => {
-			db.all("PRAGMA table_info(chapters)", (err, columns: any[]) => {
-				if (err) return reject(err);
+			db.all(
+				"PRAGMA table_info(chapters)",
+				(err, columns: SqliteColumnRow[]) => {
+					if (err) return reject(err);
 
-				const columnNames = columns.map((c) => c.name);
-				expect(columnNames).toContain("id");
-				expect(columnNames).toContain("video_id");
-				expect(columnNames).toContain("start_time");
-				expect(columnNames).toContain("end_time");
-				expect(columnNames).toContain("content");
-				expect(columnNames).toContain("summary");
-				expect(columnNames).toContain("title");
-				expect(columnNames).toContain("created_at");
+					const columnNames = columns.map((c) => c.name);
+					expect(columnNames).toContain("id");
+					expect(columnNames).toContain("video_id");
+					expect(columnNames).toContain("start_time");
+					expect(columnNames).toContain("end_time");
+					expect(columnNames).toContain("content");
+					expect(columnNames).toContain("summary");
+					expect(columnNames).toContain("title");
+					expect(columnNames).toContain("created_at");
 
-				db.close((closeErr) => {
-					if (closeErr) return reject(closeErr);
-					resolve();
-				});
-			});
+					db.close((closeErr) => {
+						if (closeErr) return reject(closeErr);
+						resolve();
+					});
+				},
+			);
 		});
 	});
 });

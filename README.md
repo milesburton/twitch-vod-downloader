@@ -158,9 +158,20 @@ If you prefer not to use VS Code Dev Containers:
 bun test                # Run all tests
 bun test --coverage     # With coverage report
 bun test --watch        # Watch mode
+bun run coverage:check  # Enforce minimum coverage thresholds
 ```
 
 Current: **75.91% coverage** with 84+ tests
+
+Coverage guardrails:
+- Coverage is generated with Bun (no separate Istanbul dependency required)
+- Thresholds are enforced from LCOV using `scripts/check-coverage.mjs`
+- Current enforced minimums:
+   - Lines: 99.75%
+   - Functions: 97.85%
+- Thresholds run in:
+   - pre-commit hook
+   - CI workflow (`CI and GHCR`)
 
 ### Database Schema
 
