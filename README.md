@@ -1,9 +1,12 @@
 # 🎬 Twitch VOD Downloader
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-![Bun](https://img.shields.io/badge/Bun-1.2.0-blueviolet?logo=bun)
-![Biome](https://img.shields.io/badge/Biome-2.3.13-green?logo=biome)
-![Test Coverage](https://img.shields.io/badge/coverage-75.91%25-green)
+[![CI and GHCR](https://github.com/milesburton/twitch-vod-downloader/actions/workflows/ci-ghcr.yml/badge.svg?branch=main)](https://github.com/milesburton/twitch-vod-downloader/actions/workflows/ci-ghcr.yml)
+[![Base Devcontainer Image](https://github.com/milesburton/twitch-vod-downloader/actions/workflows/base-image.yml/badge.svg?branch=main)](https://github.com/milesburton/twitch-vod-downloader/actions/workflows/base-image.yml)
+[![Coverage Gate](https://img.shields.io/badge/coverage%20gate-lines%2099.75%25%20%7C%20funcs%2097.85%25-brightgreen)](#development)
+[![GHCR Image](https://img.shields.io/badge/GHCR-image-blue?logo=docker)](https://github.com/milesburton/twitch-vod-downloader/pkgs/container/twitch-vod-downloader)
+[![Bun](https://img.shields.io/badge/Bun-1.3.13-blueviolet?logo=bun)](https://bun.sh)
+[![Biome](https://img.shields.io/badge/Biome-2.4.14-green?logo=biome)](https://biomejs.dev)
 
 **Archive Twitch VODs with AI-powered transcripts and chapters.**
 
