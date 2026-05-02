@@ -105,6 +105,51 @@ Hook policy:
 - Disk consumption can grow quickly with long VODs and transcript artifacts.
 - Whisper model choice impacts accuracy, speed, and compute requirements.
 
+## Troubleshooting
+
+Common issues and quick checks:
+- GPU not detected:
+	- Set `USE_GPU=false` to run CPU-only.
+	- Confirm CUDA availability in the container if GPU execution is expected.
+- Missing media/runtime tools:
+	- Ensure `ffmpeg` and `yt-dlp` are available in the runtime image.
+- No videos returned:
+	- Verify `CHANNEL_NAME` and filter settings (`FILTER_CRITERIA`, `SPECIFIC_VODS`).
+- Transcripts not generated:
+	- Confirm `ENABLE_TRANSCRIPTS=true` and a valid Whisper model setting.
+- Database appears stale:
+	- Inspect `data/db/sqlite.db` directly and verify current working directory/data mounts.
+
+## Release Process
+
+Recommended release flow:
+- Ensure `main` is green (CI and coverage gate passing).
+- Create and push a semantic version tag (for example `v1.2.3`).
+- Confirm the tagged workflow publishes the GHCR image artifacts.
+- Add or update release notes in GitHub Releases.
+
+Example tagging commands:
+```bash
+git tag v1.2.3
+git push origin v1.2.3
+```
+
+## Support Matrix
+
+Project assumptions:
+- Primary environment: Dev Container on Linux-based runtime.
+- Runtime: Bun 1.3.x.
+- CI runtime: GitHub-hosted Ubuntu runners.
+
+Execution modes:
+- Recommended: VS Code Dev Container.
+- Alternative: Docker Compose.
+
+GPU support:
+- Optional.
+- Controlled via `USE_GPU`.
+- CPU-only execution remains supported.
+
 ## License
 
 MIT. See [LICENSE](LICENSE).
