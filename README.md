@@ -5,6 +5,8 @@
 [![Base Devcontainer Image](https://github.com/milesburton/twitch-vod-downloader/actions/workflows/base-image.yml/badge.svg?branch=main)](https://github.com/milesburton/twitch-vod-downloader/actions/workflows/base-image.yml)
 [![Coverage Gate](https://img.shields.io/badge/coverage%20gate-lines%2099.75%25%20%7C%20funcs%2097.85%25-brightgreen)](#development)
 [![GHCR Image](https://img.shields.io/badge/GHCR-image-blue?logo=docker)](https://github.com/milesburton/twitch-vod-downloader/pkgs/container/twitch-vod-downloader)
+[![GitHub Release](https://img.shields.io/github/v/release/milesburton/twitch-vod-downloader?sort=semver)](https://github.com/milesburton/twitch-vod-downloader/releases)
+[![Last Commit](https://img.shields.io/github/last-commit/milesburton/twitch-vod-downloader)](https://github.com/milesburton/twitch-vod-downloader/commits/main)
 [![Bun](https://img.shields.io/badge/Bun-1.3.13-blueviolet?logo=bun)](https://bun.sh)
 [![Biome](https://img.shields.io/badge/Biome-2.4.14-green?logo=biome)](https://biomejs.dev)
 
